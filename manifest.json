@@ -1,0 +1,51 @@
+{
+    "name": "kgj 근무표",
+    "short_name": "kgj 근무표",
+    "icons": [
+        {
+            "src": "/images/tw.png",
+            "sizes": "128x128",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/tw.png",
+            "sizes": "144x144",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/tw.png",
+            "sizes": "152x152",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/tw.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/images/tw.png",
+            "sizes": "256x256",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/tw.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/tw.png",
+            "sizes": "16x16",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/tw.png",
+            "sizes": "32x32",
+            "type": "image/png"
+        }
+    ],
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#018c93",
+    "theme_color": "#018c93"
+}
