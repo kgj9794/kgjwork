@@ -7,10 +7,10 @@ function toast(string) {
     toast.classList.contains("reveal") ?
         (clearTimeout(removeToast), removeToast = setTimeout(function () {
             document.getElementById("toast").classList.remove("reveal")
-        }, 8000)) :
+        }, 3000)) :
         removeToast = setTimeout(function () {
             document.getElementById("toast").classList.remove("reveal")
-        }, 8000)
+        }, 3000)
     toast.classList.add("reveal"),
         toast.innerText = string
 }
