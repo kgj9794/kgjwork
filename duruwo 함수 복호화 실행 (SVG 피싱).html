@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>duruwo 함수 피싱 복호화</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align:center;
+        }
+        textarea, input, button {
+            margin-top: 10px;
+            display: block;
+            width: 500px;
+            max-width: 600px;
+            text-align:center;
+            margin: 0 auto; /* 좌우 여백을 자동으로 설정하여 가운데 정렬 */
+        }
+        textarea {
+            height: 150px;
+            width: 500px;
+
+        }
+    </style>
+</head>
+<body>
+    <h1>최근 SVG 복호화 (duruwo 함수)</h1>
+    <label for="xipusaInput" >복호화하고자하는 SVG내의 xipusa를 입력하시오</label>
+    <input type="text" id="xipusaInput" placeholder="ex) e13-42g-13e..." />
+
+    <button id="decodeButton">디코딩 시작</button>
+
+    <h2>결과값</h2>
+    <textarea id="output" readonly placeholder="디코딩 이전"></textarea>
+
+    <script>
+        // Decoding function
+        function duruwo(str) {
+            try {
+                // Reverse the string
+                let cibeme = str.split("").reverse().join("");
+                // Remove specific characters
+                let kariye = cibeme.replace(/[xqzmv]/g, "");
+                // Decode each part of the string
+                let pakete = kariye.split("-")
+                    .map(hex => String.fromCharCode((parseInt(hex, 16) - 7) / 3))
+                    .join("");
+                return pakete; // Return decoded string
+            } catch (e) {
+                console.error("Decoding error:", e);
+                return null; // Return null if decoding fails
+            }
+        }
+
+        // Event listener for the decode button
+        document.getElementById("decodeButton").addEventListener("click", () => {
+            const xipusaInput = document.getElementById("xipusaInput").value; // Get user input
+            const outputTextarea = document.getElementById("output"); // Output field
+
+            if (xipusaInput.trim() === "") {
+                outputTextarea.value = "디코딩 이전";
+                return;
+            }
+
+            const decodedResult = duruwo(xipusaInput); // Decode the input string
+
+            if (decodedResult) {
+                outputTextarea.value = decodedResult; // Display decoded result
+            } else {
+                outputTextarea.value = "입력한 값이 이상합니다..";
+            }
+        });
+    </script>
+</body>
+</html>
