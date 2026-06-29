@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HSP 자가진단 테스트</title>
+    <style>
+        /* iOS Liquid Glass Design System */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Apple SD Gothic Neo', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: radial-gradient(circle at 10% 10%, #e0eafc 0%, rgba(245, 247, 250, 0.8) 50%),
+                        radial-gradient(circle at 90% 90%, #fbc4b6 0%, rgba(255, 247, 243, 0.8) 100%),
+                        #e4e8f0;
+            color: #1d1d1f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            perspective: 1200px;
+        }
+
+        .stage-wrapper {
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .card-container {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(30px) saturate(210%);
+            -webkit-backdrop-filter: blur(30px) saturate(210%);
+            width: 100%;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 
+                0 4px 30px rgba(0, 0, 0, 0.01),
+                0 30px 60px rgba(0, 0, 0, 0.04),
+                inset 0 1px 2px rgba(255, 255, 255, 0.6);
+            padding: 24px 20px;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ----------------------------------------------------
+           [순수 CSS 토끼 캐릭터 그래픽 가속 구조]
+        ---------------------------------------------------- */
+        .rabbit-character {
+            width: 110px;
+            height: 110px;
+            position: relative;
+            margin: 0 auto 12px auto;
+            animation: bunnyHop 2.5s infinite ease-in-out;
+        }
+
+        @keyframes bunnyHop {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-6px) scale(1.02); }
+        }
+
+        .ears {
+            position: absolute;
+            top: -35px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 18px;
+            transition: transform 0.4s ease;
+        }
+        .ear {
+            width: 22px;
+            height: 50px;
+            background: #ffffff;
+            border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03), inset 0 1px 2px rgba(255,255,255,0.8);
+            transition: transform 0.4s ease;
+        }
+        .ear::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 35px;
+            background: #ffb6c1;
+            border-radius: 50%;
+            top: 6px;
+            left: 5px;
+            opacity: 0.7;
+        }
+        .ear.left { transform: rotate(-5deg); }
+        .ear.right { transform: rotate(5deg); }
+
+        .face {
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            border-radius: 50% 50% 48% 48% / 55% 55% 45% 45%;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04), inset 0 -2px 5px rgba(0,0,0,0.02);
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        .eyes {
+            position: absolute;
+            top: 42px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 26px;
+        }
+        .eye {
+            width: 10px;
+            height: 10px;
+            background: #232325;
+            border-radius: 50%;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .eye::after {
+            content: '';
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #ffffff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+        }
+
+        .nose-mouth {
+            position: absolute;
+            top: 52px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .nose {
+            width: 8px;
+            height: 5px;
+            background: #ff9aa2;
+            border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
+            margin-bottom: 2px;
+        }
+        .mouth {
+            width: 14px;
+            height: 8px;
+            border: 2px solid #232325;
+            border-top: none;
+            border-radius: 0 0 7px 7px;
+            transition: all 0.3s ease;
+        }
+
+        .cheeks {
+            position: absolute;
+            top: 52px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+        .cheek {
+            width: 16px;
+            height: 10px;
+            background: #ffb7b2;
+            border-radius: 50%;
+            filter: blur(1px);
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        /* ----------------------------------------------------
+           [가변 뼈대 디자인 인터랙션 클래스 모음]
+        ---------------------------------------------------- */
+        /* 🤔 인트로 궁금 모드 */
+        .rabbit-character.curious .ear.left { transform: rotate(-22deg) translateY(2px); }
+        .rabbit-character.curious .mouth { width: 6px; height: 6px; border: 2px solid #232325; border-radius: 50%; }
+
+        /* 💡 진행 과정 아하 모드 */
+        .rabbit-character.eureka .ear.left { transform: rotate(-2deg) translateY(-4px); }
+        .rabbit-character.eureka .ear.right { transform: rotate(2deg) translateY(-4px); }
+        .rabbit-character.eureka .eye { transform: scaleY(1.1); }
+        .rabbit-character.eureka .mouth { width: 10px; height: 10px; background: #232325; border-radius: 50%; }
+
+        /* [요청 반영] 😡 HSP 결과 도출 시 - 자극 과부하로 화난 표정 모션 */
+        .rabbit-character.furious {
+            animation: tremor 0.15s infinite alternate ease-in-out; /* 화나서 파르르 떠는 트레모어 효과 */
+        }
+        @keyframes tremor {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            100% { transform: translate(-1px, -1px) rotate(0.5deg); }
+        }
+        .rabbit-character.furious .ear.left { transform: rotate(-30deg) translateY(4px); }
+        .rabbit-character.furious .ear.right { transform: rotate(30deg) translateY(4px); }
+        
+        /* 눈썹 모양 각지게 기울이기 (\ / 모양 연출) */
+        .rabbit-character.furious .eye {
+            width: 11px;
+            height: 4px;
+            background: #232325;
+            border-radius: 2px;
+        }
+        .rabbit-character.furious .eye.left { transform: rotate(35deg); }
+        .rabbit-character.furious .eye.right { transform: rotate(-35deg); }
+        .rabbit-character.furious .eye::after { display: none; }
+        
+        /* 입 모양을 화나서 소리 지르는 네모난 격자 형태로 오픈 */
+        .rabbit-character.furious .mouth {
+            width: 14px;
+            height: 12px;
+            background: #ff4d6d;
+            border: 2px solid #232325;
+            border-radius: 4px 4px 50% 50%;
+        }
+        /* 볼이 빨갛게 달아오름 */
+        .rabbit-character.furious .cheek {
+            background: #ff3b30;
+            opacity: 0.85;
+            transform: scale(1.2);
+        }
+
+        /* 😎 비 HSP 결과 도출 시 - 여유만만 쿨가이 모드 */
+        .rabbit-character.cool .mouth { width: 14px; height: 6px; transform: rotate(-4deg); }
+        .rabbit-character.cool .eyes::before {
+            content: '🕶️';
+            position: absolute;
+            font-size: 2.2rem;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        /* ---------------------------------------------------- */
+
+        .start-screen {
+            text-align: center;
+            transition: transform 0.7s cubic-bezier(0.3, 1.3, 0.3, 1), opacity 0.6s ease;
+            transform-origin: center bottom;
+            max-height: 85vh;
+        }
+        .start-screen.shrink-down { opacity: 0; transform: translateY(250px) translateZ(-150px) rotateX(-15deg); pointer-events: none; }
+
+        .start-badge {
+            align-self: center;
+            background: rgba(0, 122, 255, 0.1);
+            color: #007aff;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(0, 122, 255, 0.15);
+        }
+
+        .start-screen h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #1d1d1f 0%, #434345 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .intro-box {
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: left;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.4);
+            overflow-y: auto;
+            max-height: 32vh;
+        }
+
+        .intro-p { font-size: 0.9rem; line-height: 1.6; color: #424245; margin-bottom: 12px; word-break: keep-all; }
+        .intro-p:last-child { margin-bottom: 0; }
+
+        .btn-start {
+            width: 100%;
+            background: linear-gradient(135deg, #007aff 0%, #0056b3 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0, 122, 255, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+            transition: all 0.25s ease;
+        }
+
+        .quiz-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(150px) translateX(80px) translateZ(-200px) rotateY(10deg);
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease;
+        }
+        .quiz-content.fly-in { position: relative; opacity: 1; pointer-events: auto; transform: translateY(0) translateX(0) translateZ(0) rotateY(0); }
+
+        .progress-container { margin-bottom: 16px; }
+        .progress-info { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: #8e8e93; margin-bottom: 6px; }
+        .progress-bar-bg { background: rgba(0, 0, 0, 0.05); height: 6px; border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { background: linear-gradient(90deg, #3498ff, #007aff); height: 100%; width: 0%; border-radius: 3px; transition: width 0.35s ease; }
+
+        .slider-wrapper { position: relative; min-height: 220px; display: flex; align-items: center; overflow: hidden; }
+
+        .quiz-item {
+            position: absolute;
+            width: 100%;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(100px);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+            background: rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.4);
+        }
+        .quiz-item.active { position: relative; opacity: 1; pointer-events: auto; transform: translateX(0); }
+        .quiz-item.exit { opacity: 0; pointer-events: none; transform: translateX(-100px); }
+
+        .question-text { font-size: 1rem; font-weight: 600; margin-bottom: 20px; line-height: 1.5; color: #1d1d1f; word-break: keep-all; min-height: 60px; }
+        .options { display: flex; gap: 10px; }
+
+        .option-label {
+            flex: 1; display: flex; justify-content: center; align-items: center; padding: 14px; background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(0, 0, 0, 0.04); border-radius: 12px; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #515154;
+            transition: all 0.2s ease; user-select: none; box-shadow: inset 0 1px 1px rgba(255,255,255,0.5);
+        }
+        .option-label:hover { background: rgba(255, 255, 255, 0.9); }
+        .option-label.selected-yes { background: rgba(0, 122, 255, 0.25); border-color: rgba(0, 122, 255, 0.5); color: #0056b3; }
+        .option-label.selected-no { background: rgba(142, 142, 147, 0.25); border-color: rgba(142, 142, 147, 0.5); color: #1c1c1e; }
+
+        .nav-container { margin-top: 16px; display: flex; justify-content: flex-start; min-height: 32px; }
+        .btn-back { background: rgba(0, 0, 0, 0.04); border: 1px solid rgba(0, 0, 0, 0.02); color: #6e6e73; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; border-radius: 8px; cursor: pointer; display: none; }
+
+        /* 결과 모달 레이아웃 */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(242, 242, 247, 0.2);
+            backdrop-filter: blur(35px) saturate(230%); -webkit-backdrop-filter: blur(35px) saturate(230%); justify-content: center; align-items: center; padding: 16px; z-index: 1000; opacity: 0; transition: opacity 0.35s ease;
+        }
+        .modal.active { display: flex; opacity: 1; }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.7); padding: 24px 20px; border-radius: 24px;
+            max-width: 440px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            transform: scale(0.95) translateY(10px); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal.active .modal-content { transform: scale(1) translateY(0); }
+        .result-header { text-align: center; margin-bottom: 12px; }
+        .result-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+
+        .score-board { display: inline-flex; gap: 6px; background: rgba(0, 0, 0, 0.05); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: #3a3a3c; margin-bottom: 4px; }
+        .score-yes { color: #ff3b30; font-weight: 700; }
+        .score-no { color: #636366; font-weight: 700; }
+
+        .result-desc { font-size: 0.9rem; line-height: 1.5; color: #48484a; margin-bottom: 16px; word-break: keep-all; }
+        .checked-list-container { flex: 1; overflow-y: auto; background: rgba(255, 255, 255, 0.5); border-radius: 14px; padding: 12px; margin-bottom: 16px; border: 1px solid rgba(255, 255, 255, 0.6); }
+        .checked-list-title { font-size: 0.8rem; font-weight: 700; color: #8e8e93; margin-bottom: 8px; letter-spacing: 0.5px; }
+
+        .checked-item { font-size: 0.85rem; line-height: 1.4; color: #2c2c2e; padding: 8px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.03); display: flex; align-items: flex-start; gap: 8px; }
+        .checked-item:last-child { border-bottom: none; }
+
+        .status-badge { font-size: 0.7rem; font-weight: 700; padding: 1px 4px; border-radius: 4px; white-space: nowrap; }
+        .status-badge.yes { background: rgba(0, 122, 255, 0.1); color: #007aff; }
+        .status-badge.no { background: rgba(142, 142, 147, 0.1); color: #636366; }
+
+        .modal-action-group { display: flex; gap: 8px; width: 100%; }
+        .btn-share { flex: 1; background: linear-gradient(135deg, #34cbff 0%, #007aff 100%); color: white; border: none; padding: 14px; font-size: 0.95rem; font-weight: 600; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15); transition: all 0.2s ease; }
+        .btn-close { flex: 1; background: #1d1d1f; color: white; border: none; padding: 14px; font-size: 0.95rem; font-weight: 600; border-radius: 12px; cursor: pointer; }
+
+        .checked-list-container::-webkit-scrollbar { width: 4px; }
+        .checked-list-container::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.08); border-radius: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="stage-wrapper">
+    <!-- [화면 1] 안내 시작 화면 -->
+    <div class="card-container start-screen" id="startScreen">
+        <!-- 1단계: 궁금해하는 기본 토끼 -->
+        <div class="rabbit-character curious">
+            <div class="ears"><div class="ear left"></div><div class="ear right"></div></div>
+            <div class="face">
+                <div class="eyes"><div class="eye left"></div><div class="eye right"></div></div>
+                <div class="nose-mouth"><div class="nose"></div><div class="mouth"></div></div>
+                <div class="cheeks"><div class="cheek left"></div><div class="cheek right"></div></div>
+            </div>
+        </div>
+
+        <span class="start-badge">Self-Diagnosis</span>
+        <h1>HSP 민감성 자가진단</h1>
+        
+        <div class="intro-box">
+            <p class="intro-p">
+                <strong>HSP(Highly Sensitive Person)</strong>는 외부의 미묘한 자극, 소리, 빛 그리고 주변 사람들의 감정 변화를 타인보다 더 깊고 섬세하게 처리하는 신경계를 지닌 성향을 뜻합니다.
+            </p>
+            <p class="intro-p">
+                귀여운 토끼와 함께 총 23개의 문항을 풀어보며 나의 내면 감각이 얼마나 넓게 열려있는지 직관적으로 알아볼까요?
+            </p>
+        </div>
+
+        <button class="btn-start" onclick="triggerStartTransition()">자가진단 시작하기</button>
+    </div>
+
+    <!-- [화면 2] 평가 진행 영역 -->
+    <div class="card-container quiz-content" id="quizContent">
+        <!-- 2단계: 실시간 변화하는 문제풀이용 미니 토끼 -->
+        <div class="rabbit-character curious" id="quizRabbitNode" style="width:75px; height:75px; margin-bottom:4px;">
+            <div class="ears" style="padding:0 10px; top:-24px;"><div class="ear left" style="width:16px; height:36px;"></div><div class="ear right" style="width:16px; height:36px;"></div></div>
+            <div class="face">
+                <div class="eyes" style="top:28px; padding:0 16px;"><div class="eye left" style="width:7px; height:7px;"></div><div class="eye right" style="width:7px; height:7px;"></div></div>
+                <div class="nose-mouth" style="top:36px;"><div class="nose" style="width:6px; height:4px;"></div><div class="mouth" style="width:10px; height:6px;"></div></div>
+                <div class="cheeks" style="top:36px; padding:0 10px;"><div class="cheek left" style="width:11px; height:7px;"></div><div class="cheek right" style="width:11px; height:7px;"></div></div>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-info">
+                <span>HSP 성향 진단</span>
+                <span id="progressText">1 / 23</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+        </div>
+        
+        <div class="slider-wrapper" id="quizContainer"></div>
+
+        <div class="nav-container">
+            <button class="btn-back" id="btnBack" onclick="handleBack()">← 이전 문항으로</button>
+        </div>
+    </div>
+</div>
+
+<!-- 결과 모달 -->
+<div id="resultModal" class="modal">
+    <div class="modal-content">
+        <div class="result-header">
+            <!-- 3단계: 최종 유형(HSP/비HSP)에 따라 분노/쿨 모드로 파싱되는 결과 토끼 -->
+            <div class="rabbit-character" id="resultRabbitNode">
+                <div class="ears"><div class="ear left"></div><div class="ear right"></div></div>
+                <div class="face">
+                    <div class="eyes"><div class="eye left"></div><div class="eye right"></div></div>
+                    <div class="nose-mouth"><div class="nose"></div><div class="mouth"></div></div>
+                    <div class="cheeks"><div class="cheek left"></div><div class="cheek right"></div></div>
+                </div>
+            </div>
+            <div class="result-title" id="resultTitle"></div>
+            <div class="score-board" id="resultScoreCounts"></div>
+        </div>
+        <div class="result-desc" id="resultDesc"></div>
+        
+        <div class="checked-list-container">
+            <div class="checked-list-title">전체 문항별 진단 기록</div>
+            <div id="checkedItemsList"></div>
+        </div>
+
+        <div class="modal-action-group">
+            <button class="btn-share" onclick="shareResultReport()">결과 공유하기</button>
+            <button class="btn-close" onclick="restartToWelcome()">다시 하기</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        "나는 주위에 있는 미묘한 것들을 인식하는 것 같다.",
+        "다른 사람들의 기분에 영향을 받는다.",
+        "통증에 아주 민감하다.",
+        "바쁜 날이 이어지면 프라이버시가 보장되고 자극에서 벗어날 수 있는 침대나 어두운 방에 틀어박히고 싶다.",
+        "카페인에 민감하다.",
+        "밝은 빛, 강한 냄새, 사이렌 소리 같은 것들에 의해 쉽게 피곤해진다.",
+        "주변에서 많은 일들이 일어나고 있을 때 긴장을 한다.",
+        "미술이나 음악에 깊은 감동을 받는다.",
+        "매우 양심적이다.",
+        "툭하면 깜짝 놀란다.",
+        "단기간에 많은 일을 처리를 해야하는 경우 정신을 못 차린다.",
+        "사람들이 불편해 할 때 어떻게 하면 좀 더 편안하게 해줄 수 있는지 안다.",
+        "상상력이 풍부해 자주 공상에 빠진다.",
+        "한꺼번에 여러 가지 일을 부탁받는 게 싫다.",
+        "실수를 저지르거나 뭔가 잊어버리지 않으려고 노력한다.",
+        "폭력적인 영화와 TV 장면을 애써 피한다.",
+        "배고프면 집중이 잘 안되고 속이 더부룩해지는 등 신체 반응이 뚜렷하다.",
+        "생활에 변화가 생기면 혼란스럽다.",
+        "섬세하고 미묘한 향기, 맛, 소리, 예술작품을 감상하고 즐긴다.",
+        "내 생활을 정돈해서 소란스럽거나 당황하게 되는 상황을 피하는 것을 우선으로 한다.",
+        "경쟁을 해야 한다거나 무슨 일을 할 때 관찰하면 불안하거나 긴장해서 평소 실력을 발휘하지 못한다.",
+        "풍요롭고 복잡한 내면세계를 지니고 있다.",
+        "어렸을 때 부모님과 선생님들은 내가 민감하거나 숫기가 없다고 생각했다."
+    ];
+
+    let currentIdx = 0;
+    const answers = {}; 
+    let globalYesCount = 0;
+    let globalNoCount = 0;
+    let globalResultTitle = '';
+
+    const startScreen = document.getElementById('startScreen');
+    const quizContent = document.getElementById('quizContent');
+    const quizContainer = document.getElementById('quizContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const btnBack = document.getElementById('btnBack');
+    const quizRabbitNode = document.getElementById('quizRabbitNode');
+    const resultRabbitNode = document.getElementById('resultRabbitNode');
+
+    function triggerStartTransition() {
+        startScreen.classList.add('shrink-down');
+        initQuiz();
+        setTimeout(() => {
+            startScreen.style.display = 'none';
+            quizContent.classList.add('fly-in');
+        }, 300); 
+    }
+
+    function initQuiz() {
+        quizContainer.innerHTML = '';
+        questions.forEach((q, index) => {
+            const itemNum = index + 1;
+            const quizItem = document.createElement('div');
+            quizItem.className = `quiz-item ${index === 0 ? 'active' : ''}`;
+            quizItem.id = `slide-${index}`;
+            quizItem.innerHTML = `
+                <div class="question-text">${itemNum}. ${q}</div>
+                <div class="options">
+                    <button class="option-label yes-btn" id="yes-${index}" onclick="handleSelect(${index}, 'yes')">그렇다</button>
+                    <button class="option-label no-btn" id="no-${index}" onclick="handleSelect(${index}, 'no')">아니다</button>
+                </div>
+            `;
+            quizContainer.appendChild(quizItem);
+        });
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const percent = (currentIdx / questions.length) * 100;
+        progressBar.style.width = `${percent}%`;
+        progressText.innerText = `${Math.min(currentIdx + 1, questions.length)} / ${questions.length}`;
+        btnBack.style.display = currentIdx === 0 ? 'none' : 'block';
+
+        if (currentIdx < 11) {
+            quizRabbitNode.className = "rabbit-character curious";
+        } else {
+            quizRabbitNode.className = "rabbit-character eureka";
+        }
+    }
+
+    function handleSelect(index, val) {
+        answers[index] = val; 
+
+        document.getElementById(`yes-${index}`).className = "option-label yes-btn" + (val === 'yes' ? ' selected-yes' : '');
+        document.getElementById(`no-${index}`).className = "option-label no-btn" + (val === 'no' ? ' selected-no' : '');
+
+        const currentSlide = document.getElementById(`slide-${index}`);
+        if (index === questions.length - 1) {
+            progressBar.style.width = '100%';
+            setTimeout(showResult, 300);
+            return;
+        }
+
+        currentSlide.className = 'quiz-item exit';
+        currentIdx++;
+        document.getElementById(`slide-${currentIdx}`).className = 'quiz-item active';
+        updateProgress();
+    }
+
+    function handleBack() {
+        if (currentIdx === 0) return;
+        document.getElementById(`slide-${currentIdx}`).className = 'quiz-item';
+        currentIdx--;
+        document.getElementById(`slide-${currentIdx}`).className = 'quiz-item active';
+        updateProgress();
+    }
+
+    function showResult() {
+        let yesCount = 0;
+        let noCount = 0;
+        let finalReportHTML = '';
+
+        questions.forEach((q, i) => {
+            const num = i + 1;
+            if (answers[i] === 'yes') {
+                yesCount++;
+                finalReportHTML += `<div class="checked-item"><span class="status-badge yes">그렇다</span><div>${num}. ${q}</div></div>`;
+            } else {
+                noCount++;
+                finalReportHTML += `<div class="checked-item"><span class="status-badge no">아니다</span><div style="color:#8e8e93;">${num}. ${q}</div></div>`;
+            }
+        });
+
+        globalYesCount = yesCount;
+        globalNoCount = noCount;
+
+        const modal = document.getElementById('resultModal');
+        document.getElementById('resultScoreCounts').innerHTML = `그렇다 <span class="score-yes">${yesCount}</span>개 · 아니다 <span class="score-no">${noCount}</span>개`;
+        document.getElementById('checkedItemsList').innerHTML = finalReportHTML;
+
+        const titleEl = document.getElementById('resultTitle');
+        const descEl = document.getElementById('resultDesc');
+
+        // [변경 제어 플레이트] 조건 매칭 조건식 분기
+        if (yesCount >= 13) {
+            globalResultTitle = "HSP (매우 민감한 사람)";
+            titleEl.innerText = globalResultTitle;
+            titleEl.style.color = "#ff3b30";
+            
+            // 핵심 요청 반영: HSP 판정 시 격하게 화내는 유기적 클래스 부여
+            resultRabbitNode.className = "rabbit-character furious"; 
+            descEl.innerText = `자극 과부하! 당신은 외부 환경의 사소한 변화나 타인의 감정, 스트레스를 스펀지처럼 흡수하는 초민감 신경망의 소유자입니다. 주위의 소음과 자극 때문에 토끼가 잔뜩 화가 났네요! 오늘만큼은 어두운 방안에서 혼자만의 조용한 힐링 타임을 가지며 방전된 에너지를 채워주세요.`;
+        } else {
+            globalResultTitle = "비 HSP (무던한 사람)";
+            titleEl.innerText = globalResultTitle;
+            titleEl.style.color = "#007aff";
+            
+            resultRabbitNode.className = "rabbit-character cool"; // 여유 넘치는 멋쟁이 썬글라스 토끼 클래스 부여
+            descEl.innerText = `당신은 주변의 소란이나 감정의 파도 속에서도 평정심을 유연하게 유지하는 단단하고 무던한 멘탈의 소유자입니다. 환경 변화 속에서도 회복탄력성이 뛰어나며 어떠한 스트레스가 와도 쿨하게 넘길 줄 아는 든든한 내면을 지니고 있습니다.`;
+        }
+
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
+    }
+
+    function shareResultReport() {
+        let reportText = `✨ HSP 민감성 자가진단 결과 ✨\n`;
+        reportText += `나의 진단 결과: ${globalResultTitle} ${globalYesCount >= 13 ? '😡' : '😎'}\n`;
+        reportText += `(그렇다 ${globalYesCount}개 · 아니다 ${globalNoCount}개)\n\n`;
+        reportText += `📋 전체 문항별 진단 기록:\n`;
+
+        questions.forEach((q, i) => {
+            const num = i + 1;
+            const status = (answers[i] === 'yes') ? '[✓ 그렇다]' : '[✕ 아니다]';
+            reportText += `${status} ${num}번. ${q}\n`;
+        });
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'HSP 자가진단 리포트',
+                text: reportText
+            }).catch((error) => console.log('공유 실패:', error));
+        } else {
+            navigator.clipboard.writeText(reportText)
+                .then(() => {
+                    alert('전체 문항 진단 기록 리포트가 클립보드에 복사되었습니다! 카카오톡이나 메시지창에 [붙여넣기]하여 공유하세요.');
+                })
+                .catch(err => {
+                    alert('공유 기능을 지원하지 않는 브라우저입니다.');
+                });
+        }
+    }
+
+    function restartToWelcome() {
+        const modal = document.getElementById('resultModal');
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            quizContent.classList.remove('fly-in');
+            startScreen.style.display = 'flex';
+            void startScreen.offsetWidth;
+            startScreen.classList.remove('shrink-down');
+            currentIdx = 0;
+            for (let key in answers) delete answers[key];
+        }, 350);
+    }
+</script>
+</body>
+</html>
