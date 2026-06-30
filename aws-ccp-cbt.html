@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AWS CCP 모의고사 · 로컬 CBT</title>
+<style>
+  :root{
+    --bg: #f5f6f8;
+    --bg-elev: #ffffff;
+    --bg-card: #ffffff;
+    --line: #dde1e8;
+    --line-soft: #e9ebef;
+    --text: #1a1f29;
+    --text-dim: #5b6475;
+    --text-faint: #8a93a4;
+    --orange: #ff9900;
+    --orange-dim: #d98a00;
+    --green: #1f9d5f;
+    --green-dim: #8fd4b4;
+    --red: #d6303f;
+    --red-dim: #f0b4ba;
+    --blue: #2563eb;
+    --hover-border: #c3c9d4;
+    --hover-bg: #eef0f3;
+    --answered-bg: #e3e8f2;
+    --modal-overlay: rgba(15,18,24,.45);
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --fs-scale: 1;
+  }
+  [data-theme="dark"]{
+    --bg: #0a0d12;
+    --bg-elev: #11151c;
+    --bg-card: #161b24;
+    --line: #232a37;
+    --line-soft: #1b212c;
+    --text: #e7ecf3;
+    --text-dim: #8a93a4;
+    --text-faint: #5b6475;
+    --orange: #ff9900;
+    --orange-dim: #b86d00;
+    --green: #2fd483;
+    --green-dim: #1c7a4d;
+    --red: #ff5d6c;
+    --red-dim: #8c2530;
+    --blue: #4da3ff;
+    --hover-border: #3a4456;
+    --hover-bg: #1a212c;
+    --answered-bg: #1a2433;
+    --modal-overlay: rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  /* Applied only while taking the exam (see render()) to stop an accidental swipe-down
+     at the top of the page from triggering the browser's pull-to-refresh and wiping
+     the in-progress answers. */
+  html.exam-mode, body.exam-mode{overscroll-behavior-y:contain;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.5;
+    min-height:100vh;
+    transition:background .15s, color .15s;
+    padding-bottom:env(safe-area-inset-bottom);
+    -webkit-text-size-adjust:100%;
+  }
+  #app{
+    max-width:980px;margin:0 auto;
+    padding:20px max(18px, env(safe-area-inset-right)) 60px max(18px, env(safe-area-inset-left));
+  }
+
+  /* ---- top bar ---- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    padding:14px 0 18px;border-bottom:1px solid var(--line);margin-bottom:24px;
+  }
+  /* used when the topbar is rendered below the content instead of above it (exam screen) */
+  .topbar-bottom{
+    border-bottom:none;border-top:1px solid var(--line);
+    margin-bottom:0;margin-top:24px;padding:18px 0 14px;
+  }
+  .brand{display:flex;align-items:baseline;gap:10px;}
+  .brand .mark{
+    font-family:var(--mono);font-weight:700;color:var(--orange);
+    font-size:13px;letter-spacing:.12em;border:1px solid var(--orange-dim);
+    padding:3px 7px;border-radius:4px;background:rgba(255,153,0,.08);
+  }
+  .brand h1{font-size:17px;margin:0;font-weight:600;letter-spacing:-.01em;}
+  .brand .sub{font-size:12px;color:var(--text-faint);}
+  .topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .topbar-count{font-family:var(--mono);font-size:12px;color:var(--text-dim);}
+  .topbar-actions{display:flex;gap:6px;}
+  .iconbtn{
+    background:var(--bg-elev);color:var(--text-dim);border:1px solid var(--line);
+    padding:6px 10px;border-radius:7px;font-size:12.5px;cursor:pointer;font-family:var(--sans);
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .iconbtn:hover{border-color:var(--hover-border);background:var(--hover-bg);}
+  .iconbtn.active{border-color:var(--orange-dim);color:var(--orange);}
+
+  .fontctl{
+    display:inline-flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:7px;overflow:hidden;
+  }
+  .fontctl button{
+    background:var(--bg-elev);color:var(--text-dim);border:none;
+    padding:6px 11px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans);line-height:1;
+  }
+  .fontctl button:hover{background:var(--hover-bg);color:var(--text);}
+  .fontctl button:disabled{opacity:.3;cursor:not-allowed;}
+  .fontctl .fontctl-val{
+    font-family:var(--mono);font-size:11px;color:var(--text-dim);padding:0 8px;min-width:38px;text-align:center;
+    border-left:1px solid var(--line);border-right:1px solid var(--line);
+  }
+  .langselect{
+    background:var(--bg-elev);color:var(--text-dim);border:1px solid var(--line);
+    border-radius:7px;padding:6px 8px;font-size:12.5px;font-family:var(--sans);cursor:pointer;
+  }
+  .langselect:hover{border-color:var(--hover-border);}
+
+  /* ---- cards / sections ---- */
+  .card{
+    background:var(--bg-card);border:1px solid var(--line);border-radius:10px;
+    padding:20px;margin-bottom:18px;
+  }
+  .card h2{margin:0 0 4px;font-size:15px;font-weight:600;}
+  .card .desc{color:var(--text-dim);font-size:13px;margin:0 0 14px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  @media (max-width:680px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+  .stat-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px;}
+  .stat{
+    flex:1;min-width:130px;background:var(--bg-elev);border:1px solid var(--line-soft);
+    border-radius:8px;padding:12px 14px;
+  }
+  .stat .num{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--orange);}
+  .stat .label{font-size:11.5px;color:var(--text-dim);margin-top:2px;}
+
+  /* ---- resume / pause banner ---- */
+  .resume-card{border:1px solid var(--orange-dim);background:rgba(255,153,0,.07);}
+  .resume-card h2{color:var(--orange-dim);}
+  .resume-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap;}
+  .resume-item:first-of-type{border-top:none;}
+  .resume-item-info{min-width:0;}
+  .resume-item-title{font-weight:600;font-size:13.5px;margin-bottom:2px;}
+  .resume-item .desc{margin:0;}
+
+  /* ---- buttons ---- */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    background:var(--bg-elev);color:var(--text);border:1px solid var(--line);
+    padding:10px 16px;border-radius:7px;font-size:13.5px;font-weight:500;
+    cursor:pointer;transition:border-color .15s, background .15s;
+    font-family:var(--sans);
+  }
+  .btn:hover{border-color:var(--hover-border);background:var(--hover-bg);}
+  .btn-primary{background:var(--orange);color:#1a1206;border-color:var(--orange);font-weight:700;}
+  .btn-primary:hover{background:#ffaa2b;}
+  .btn-danger{color:var(--red);}
+  .btn-danger:hover{border-color:var(--red-dim);background:rgba(214,48,63,.08);}
+  .btn-ghost{background:transparent;}
+  .btn-block{width:100%;}
+  .btn:disabled{opacity:.35;cursor:not-allowed;}
+  .btn-sm{padding:6px 10px;font-size:12px;border-radius:6px;}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+
+  .pill{
+    display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;
+    border-radius:99px;border:1px solid var(--line);color:var(--text-dim);
+  }
+  .pill-orange{border-color:var(--orange-dim);color:var(--orange);}
+  .pill-green{border-color:var(--green-dim);color:var(--green);}
+  .pill-red{border-color:var(--red-dim);color:var(--red);}
+
+  select, input[type=number]{
+    background:var(--bg-elev);color:var(--text);border:1px solid var(--line);
+    border-radius:6px;padding:8px 10px;font-size:13px;font-family:var(--sans);
+  }
+  label.field{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--text-dim);}
+  .checkbox-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim);}
+
+  /* ---- exam list table ---- */
+  .table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table.examlist{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.examlist th, table.examlist td{
+    padding:7px 8px;text-align:center;border-bottom:1px solid var(--line-soft);color:var(--text-dim);white-space:nowrap;
+  }
+  table.examlist th{color:var(--text-faint);font-weight:500;font-size:11px;}
+  table.examlist tr:hover td{color:var(--text);}
+  table.examlist td.examname{text-align:left;color:var(--text);}
+
+  /* ---- exam screen ---- */
+  .exam-layout{display:flex;gap:18px;align-items:flex-start;}
+  .exam-main{flex:1;min-width:0;}
+  .exam-side{width:230px;flex-shrink:0;}
+  /* On narrow screens the question card always comes first, with the question-list
+     palette stacked below the nav/submit buttons — not above the question. */
+  @media (max-width:760px){.exam-layout{flex-direction:column;} .exam-side{width:100%;}}
+
+  /* ---- palette collapse toggle ---- */
+  .side-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .side-head .palette-title{margin-bottom:0;}
+  .palette-collapsed .palette, .palette-collapsed .legend{display:none;}
+  .palette-toggle{
+    background:transparent;border:1px solid var(--line);color:var(--text-dim);
+    border-radius:6px;font-size:11px;padding:3px 8px;cursor:pointer;font-family:var(--sans);
+  }
+  .palette-toggle:hover{border-color:var(--hover-border);color:var(--text);}
+
+  /* The exam title / timer / answered-count used to live in a separate bar above the
+     question card. They're now folded directly into the question card itself (qmeta /
+     qsub below) so the question is the very first thing visible on small screens. */
+  .qcard{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:22px;}
+  .qmeta{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
+  .qmeta-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .qnum{font-family:var(--mono);color:var(--orange);font-weight:700;font-size:calc(15px * var(--fs-scale));}
+  .qsub{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);margin-bottom:14px;}
+  .timer{font-family:var(--mono);font-weight:700;color:var(--orange);font-size:calc(12.5px * var(--fs-scale));}
+  .timer.low{color:var(--red);}
+  /* Language color is no longer tied to English-vs-Korean: whichever language is the
+     *primary* one being read (the only one shown, or the first one in a combined mode)
+     always gets full-contrast text. Only a true secondary/supplementary line is dimmed
+     via the separate .lang-dim modifier class, applied conditionally in JS. */
+  .qtext{font-size:calc(15px * var(--fs-scale));line-height:1.65;margin-bottom:6px;white-space:pre-wrap;color:var(--text);}
+  .qtext-ko{font-size:calc(14px * var(--fs-scale));line-height:1.6;margin-bottom:18px;color:var(--text);white-space:pre-wrap;}
+  .qtext.lang-dim, .qtext-ko.lang-dim{color:var(--text-dim);}
+  .qhint{
+    color:var(--text-faint);font-size:calc(11.5px * var(--fs-scale));margin-top:-2px;margin-bottom:14px;
+    display:inline-block;padding:5px 10px;border-radius:6px;border:1px solid transparent;
+  }
+  .qhint.qhint-incomplete{border:2px solid var(--red);color:var(--red);font-weight:700;background:rgba(214,48,63,.08);}
+  .qhint.qhint-complete{border:1px solid var(--green);color:var(--green);background:rgba(31,157,95,.08);}
+
+  .opt{
+    display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);
+    border-radius:8px;margin-bottom:9px;cursor:pointer;transition:border-color .12s, background .12s;
+  }
+  .opt:hover{border-color:var(--hover-border);}
+  .opt.selected{border-color:var(--orange);background:rgba(255,153,0,.08);}
+  .opt .letter{
+    font-family:var(--mono);font-weight:700;font-size:12px;width:20px;height:20px;flex-shrink:0;
+    border:1px solid var(--line);border-radius:5px;display:flex;align-items:center;justify-content:center;
+    color:var(--text-dim);margin-top:1px;
+  }
+  .opt.selected .letter{border-color:var(--orange);color:var(--orange);}
+  .opt .otext{font-size:calc(13.5px * var(--fs-scale));line-height:1.5;color:var(--text);}
+  .opt .otext > *:not(:first-child){margin-top:3px;}
+  .opt .otext-ko{font-size:calc(13px * var(--fs-scale));line-height:1.5;}
+  .opt .otext-en{font-size:calc(13.5px * var(--fs-scale));line-height:1.5;}
+  .opt .otext-ko.lang-dim, .opt .otext-en.lang-dim{color:var(--text-dim);}
+  .opt.locked{cursor:default;}
+
+  /* result review coloring */
+  .opt.rev-correct{border-color:var(--green-dim);background:rgba(31,157,95,.08);}
+  .opt.rev-correct .letter{border-color:var(--green);color:var(--green);}
+  .opt.rev-wrong{border-color:var(--red-dim);background:rgba(214,48,63,.08);}
+  .opt.rev-wrong .letter{border-color:var(--red);color:var(--red);}
+
+  /* instant feedback banner inside exam screen */
+  .instant-feedback{
+    margin:4px 0 16px;padding:11px 14px;border-radius:8px;font-size:calc(13.5px * var(--fs-scale));font-weight:600;
+  }
+  .instant-feedback.is-correct{background:rgba(31,157,95,.12);color:var(--green);border:1px solid var(--green-dim);}
+  .instant-feedback.is-wrong{background:rgba(214,48,63,.12);color:var(--red);border:1px solid var(--red-dim);}
+  .instant-feedback .ans-line{font-weight:400;font-size:calc(12.5px * var(--fs-scale));color:var(--text-dim);margin-top:4px;}
+
+  .examfoot{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:10px;flex-wrap:wrap;}
+
+  /* palette */
+  .palette-title{font-size:11.5px;color:var(--text-faint);margin-bottom:8px;font-family:var(--mono);letter-spacing:.05em;}
+  .palette{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;}
+  @media (max-width:760px){.palette{grid-template-columns:repeat(10,1fr);}}
+  .pbtn{
+    aspect-ratio:1;border:1px solid var(--line);border-radius:5px;background:var(--bg-elev);
+    color:var(--text-dim);font-family:var(--mono);font-size:11px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  .pbtn.cur{border-color:var(--orange);color:var(--orange);box-shadow:0 0 0 1px var(--orange);}
+  .pbtn.answered{background:var(--answered-bg);color:var(--text);}
+  .pbtn.flagged::after{
+    content:"";position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:var(--orange);
+  }
+  .legend{display:flex;flex-direction:column;gap:6px;margin-top:14px;font-size:11px;color:var(--text-dim);}
+  .legend span.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:-1px;}
+
+  /* results */
+  .scoreboard{display:flex;gap:18px;align-items:center;margin-bottom:18px;flex-wrap:wrap;}
+  .scorecircle{
+    width:108px;height:108px;border-radius:50%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;border:3px solid var(--line);flex-shrink:0;
+  }
+  .scorecircle .pct{font-family:var(--mono);font-size:26px;font-weight:800;}
+  .scorecircle .lbl{font-size:10px;color:var(--text-dim);}
+  .pass{border-color:var(--green);} .pass .pct{color:var(--green);}
+  .fail{border-color:var(--red);} .fail .pct{color:var(--red);}
+
+  .revitem{border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:10px;}
+  .revitem .revhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;cursor:pointer;}
+  .revitem .revq{font-size:calc(13.5px * var(--fs-scale));color:var(--text-dim);}
+  .revitem.is-wrong{border-left:3px solid var(--red);}
+  .revitem.is-correct{border-left:3px solid var(--green);}
+  .revbody{display:none;margin-top:10px;}
+  .revbody.open{display:block;}
+  .badge-correct{color:var(--green);font-family:var(--mono);font-size:11px;}
+  .badge-wrong{color:var(--red);font-family:var(--mono);font-size:11px;}
+
+  .empty{color:var(--text-faint);font-size:13px;text-align:center;padding:30px 10px;}
+  .backlink{color:var(--text-dim);font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-bottom:14px;}
+  .backlink:hover{color:var(--text);}
+
+  .modal-overlay{
+    position:fixed;inset:0;background:var(--modal-overlay);display:flex;align-items:center;justify-content:center;z-index:50;
+  }
+  .modal{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:22px;max-width:360px;}
+  .modal h3{margin:0 0 8px;font-size:15px;}
+  .modal p{color:var(--text-dim);font-size:13px;margin:0 0 16px;}
+
+  .toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg-elev);
+    border:1px solid var(--line);color:var(--text);padding:10px 18px;border-radius:8px;font-size:13px;
+    z-index:60;opacity:0;transition:opacity .25s;pointer-events:none;
+  }
+  .toast.show{opacity:1;}
+
+  hr.sep{border:none;border-top:1px solid var(--line-soft);margin:18px 0;}
+
+  /* ---- mobile (iPhone) optimization ---- */
+  @media (max-width:680px){
+    #app{padding:14px max(12px, env(safe-area-inset-right)) 70px max(12px, env(safe-area-inset-left));}
+    .card{padding:16px;}
+    .qcard{padding:16px;}
+    .brand h1{font-size:15px;}
+    .brand .sub{font-size:11px;}
+    .topbar{margin-bottom:18px;gap:10px;}
+    .topbar-right{width:100%;justify-content:space-between;}
+    .btn, .opt, .iconbtn{min-height:42px;}
+    .btn-sm{min-height:36px;}
+    .opt{padding:11px 12px;}
+    .scorecircle{width:88px;height:88px;}
+    .examfoot{position:relative;}
+  }
+  @media (max-width:420px){
+    .palette{grid-template-columns:repeat(8,1fr);}
+    .stat{min-width:42%;}
+    .scoreboard{flex-direction:column;align-items:flex-start;}
+  }
+</style>
+
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast"></div>
+
+<script src="questions.js"></script>
+<script>
+/* =========================================================
+   AWS CCP 로컬 CBT 모의고사 - 단일 파일 앱
+   - 데이터는 전부 localStorage 에만 저장됩니다 (서버 없음)
+   ========================================================= */
+
+/* QBANK_DATA normally comes from questions.js (<script src="questions.js">, kept in the
+   same folder as this HTML file). Some mobile browsers (e.g. opening a local file with
+   iOS Edge) refuse to load that sibling script, leaving QBANK_DATA undefined. To handle
+   that, we fall back to a copy cached in localStorage from a previous manual import, and
+   if neither is available, the app shows a screen letting the user pick the questions.js
+   file by hand — after that one-time import it's cached and loads automatically from then
+   on in that browser.
+   Each question may optionally carry qk (Korean question text) and ok (Korean
+   option text keyed by letter) once translated. */
+const LS_QBANK_CACHE = 'awsccp_qbank_cache_v1';
+let QBANK = computeInitialQbank();
+let QBYID = {};
+let EXAM_NUMBERS = [];
+let EXAM_COUNTS = {};
+rebuildQbankIndexes();
+
+function computeInitialQbank(){
+  if(typeof QBANK_DATA !== 'undefined' && Array.isArray(QBANK_DATA) && QBANK_DATA.length){
+    return QBANK_DATA;
+  }
+  const cached = loadCachedQbank();
+  return cached || [];
+}
+function loadCachedQbank(){
+  try{
+    const raw = localStorage.getItem(LS_QBANK_CACHE);
+    if(!raw) return null;
+    const data = JSON.parse(raw);
+    return (Array.isArray(data) && data.length) ? data : null;
+  }catch(e){ return null; }
+}
+function rebuildQbankIndexes(){
+  QBYID = {};
+  QBANK.forEach(q => QBYID[q.id] = q);
+  EXAM_NUMBERS = [...new Set(QBANK.map(q => q.exam))].sort((a,b)=>a-b);
+  EXAM_COUNTS = {};
+  EXAM_NUMBERS.forEach(n => EXAM_COUNTS[n] = QBANK.filter(q=>q.exam===n).length);
+}
+function rebuildQuestionBank(data){
+  QBANK = data;
+  rebuildQbankIndexes();
+}
+
+function transFor(q){
+  if(!q.qk) return null;
+  return { qk: q.qk, o: q.ok || {} };
+}
+
+const LS_STATS = 'awsccp_stats_v1';
+const LS_HISTORY = 'awsccp_history_v1';
+const LS_SESSION = 'awsccp_session_v1'; // legacy single-slot key, migrated on load
+const LS_SESSIONS = 'awsccp_sessions_v1'; // current multi-slot map: { sid: serializedSession }
+const LS_THEME = 'awsccp_theme_v1';
+const LS_SHOWKO = 'awsccp_showko_v1';
+const LS_LANGMODE = 'awsccp_langmode_v1';
+const LS_FONTSCALE = 'awsccp_fontscale_v1';
+
+/* ---- safe localStorage wrappers (degrade gracefully if storage is blocked,
+   e.g. locked-down corporate browsers or private-browsing edge cases) ---- */
+function lsGet(key){ try{ return localStorage.getItem(key); }catch(e){ return null; } }
+function lsSet(key, val){ try{ localStorage.setItem(key, val); }catch(e){} }
+function lsRemove(key){ try{ localStorage.removeItem(key); }catch(e){} }
+
+function loadStats(){
+  try{ return JSON.parse(lsGet(LS_STATS)) || {}; }catch(e){ return {}; }
+}
+function saveStats(s){ lsSet(LS_STATS, JSON.stringify(s)); }
+function loadHistory(){
+  try{ return JSON.parse(lsGet(LS_HISTORY)) || []; }catch(e){ return []; }
+}
+function saveHistory(h){ lsSet(LS_HISTORY, JSON.stringify(h)); }
+
+let STATS = loadStats();
+let HISTORY = loadHistory();
+migrateLegacySession(); // one-time: old single-slot paused session -> new multi-slot map
+
+/* ---- theme ---- */
+function loadTheme(){ return lsGet(LS_THEME) || 'light'; }
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  lsSet(LS_THEME, t);
+}
+let THEME = loadTheme();
+applyTheme(THEME);
+function toggleTheme(){
+  THEME = (THEME === 'light') ? 'dark' : 'light';
+  applyTheme(THEME);
+  render();
+}
+
+/* ---- language display mode: 'en' | 'ko' | 'enko' | 'koen' ----
+   'enko' = English shown above Korean, 'koen' = Korean shown above English.
+   Selected via a dropdown (not a cycling button) since there are 4 distinct choices. */
+const LANG_LABELS = { en:'EN', ko:'KO', enko:'EN + KO', koen:'KO + EN' };
+const LANG_MODES = ['en','ko','enko','koen'];
+function loadLangMode(){
+  const v = lsGet(LS_LANGMODE);
+  if(LANG_MODES.includes(v)) return v;
+  // migrate from legacy settings, if present
+  const legacy = lsGet(LS_SHOWKO);
+  if(legacy === '0') return 'en';
+  if(v === 'both') return 'enko'; // old 3-state value
+  return 'enko';
+}
+let LANG_MODE = loadLangMode();
+function setLangMode(mode){
+  if(!LANG_MODES.includes(mode)) return;
+  LANG_MODE = mode;
+  lsSet(LS_LANGMODE, LANG_MODE);
+  render();
+}
+function wantsEn(){ return LANG_MODE === 'en' || LANG_MODE === 'enko' || LANG_MODE === 'koen'; }
+function wantsKo(){ return LANG_MODE === 'ko' || LANG_MODE === 'enko' || LANG_MODE === 'koen'; }
+function koFirst(){ return LANG_MODE === 'koen'; }
+
+/* Decide, for a single piece of text, whether to show its English / Korean version.
+   hasKo tells us whether a Korean translation actually exists for this exact piece
+   (question text, or one specific option's text) -- this must be checked per-piece,
+   not just once for the whole question, otherwise a question that has some options
+   translated and others not would render blank text for the untranslated options
+   when the mode is Korean-only. We always guarantee at least one language is shown. */
+function langPick(hasKo){
+  let showKo = wantsKo() && hasKo;
+  let showEn = wantsEn() || !showKo; // fall back to English if Korean was wanted but unavailable
+  if(!showEn && !showKo) showEn = true; // safety net, should not normally trigger
+  return { showEn, showKo };
+}
+/* When both languages are shown, the *secondary* one (the one not first, per koFirst())
+   is visually de-emphasized (dimmed) so the primary language stays fully readable.
+   When only one language is shown, neither gets dimmed. */
+function langClasses(pick){
+  if(pick.showEn && pick.showKo){
+    return koFirst() ? { enExtra:' lang-dim', koExtra:'' } : { enExtra:'', koExtra:' lang-dim' };
+  }
+  return { enExtra:'', koExtra:'' };
+}
+
+/* ---- font size control ---- */
+const FONT_SCALE_MIN = 0.8, FONT_SCALE_MAX = 1.6, FONT_SCALE_STEP = 0.1;
+function loadFontScale(){
+  const v = parseFloat(lsGet(LS_FONTSCALE));
+  return (isFinite(v) && v >= FONT_SCALE_MIN && v <= FONT_SCALE_MAX) ? v : 1;
+}
+function applyFontScale(scale){
+  document.documentElement.style.setProperty('--fs-scale', scale);
+}
+let FONT_SCALE = loadFontScale();
+applyFontScale(FONT_SCALE);
+function changeFontScale(delta){
+  let next = Math.round((FONT_SCALE + delta) * 10) / 10;
+  next = Math.min(FONT_SCALE_MAX, Math.max(FONT_SCALE_MIN, next));
+  FONT_SCALE = next;
+  lsSet(LS_FONTSCALE, String(FONT_SCALE));
+  applyFontScale(FONT_SCALE);
+  render();
+}
+
+// ---- in-memory session state for an active exam ----
+let SESSION = null;
+let TIMER_HANDLE = null;
+
+// ---- question-list (palette) panel collapse state ----
+// defaults open on wide screens, collapsed on narrow (mobile) screens
+function isNarrowScreen(){
+  try{ return window.matchMedia('(max-width:760px)').matches; }catch(e){ return false; }
+}
+let PALETTE_OPEN = !isNarrowScreen();
+function togglePalette(){
+  PALETTE_OPEN = !PALETTE_OPEN;
+  render();
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function setEqual(a,b){
+  if(a.length !== b.length) return false;
+  const sa = [...a].sort(), sb=[...b].sort();
+  return sa.every((v,i)=>v===sb[i]);
+}
+
+function wordNum(text){
+  const m = text.match(/\((?:Choose|Select)\s+([A-Za-z]+)/i);
+  if(!m) return null;
+  const map = {one:1, two:2, three:3, four:4};
+  return map[m[1].toLowerCase()] || null;
+}
+
+function fmtTime(sec){
+  sec = Math.max(0, Math.round(sec));
+  const m = Math.floor(sec/60), s = sec%60;
+  return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+/* ============== SESSION SAVE / RESUME (pause feature) ==============
+   Multiple exams can be paused at the same time (e.g. pause 회차3 mid-way,
+   peek at 회차5, go back home) — each paused session is stored under its own
+   id (sid) inside the LS_SESSIONS map, so starting/viewing a different exam
+   never silently discards another exam's saved progress. */
+const MAX_SAVED_SESSIONS = 8;
+function genSid(){ return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+function loadSessionsMap(){
+  try{
+    const v = JSON.parse(lsGet(LS_SESSIONS));
+    return (v && typeof v === 'object') ? v : {};
+  }catch(e){ return {}; }
+}
+function saveSessionsMap(map){ lsSet(LS_SESSIONS, JSON.stringify(map)); }
+
+// one-time migration from the old single-slot storage format, if present
+function migrateLegacySession(){
+  const legacyRaw = lsGet(LS_SESSION);
+  if(!legacyRaw) return;
+  try{
+    const legacy = JSON.parse(legacyRaw);
+    if(legacy){
+      const map = loadSessionsMap();
+      const sid = genSid();
+      legacy.sid = sid;
+      legacy.savedAt = legacy.savedAt || Date.now();
+      map[sid] = legacy;
+      saveSessionsMap(map);
+    }
+  }catch(e){ /* ignore corrupt legacy data */ }
+  lsRemove(LS_SESSION);
+}
+
+function serializeSession(){
+  if(!SESSION) return null;
+  return {
+    sid: SESSION.sid,
+    title: SESSION.title,
+    ids: SESSION.ids,
+    answers: SESSION.answers,
+    flagged: [...SESSION.flagged],
+    revealed: [...(SESSION.revealed || [])],
+    statsRecorded: [...(SESSION.statsRecorded || [])],
+    cur: SESSION.cur,
+    mode: SESSION.mode,
+    instant: !!SESSION.instant,
+    timerSec: SESSION.timerSec,
+    timeLeft: SESSION.timeLeft,
+    startedAt: SESSION.startedAt,
+    savedAt: Date.now(),
+    submitted: false
+  };
+}
+function saveSessionToStorage(){
+  const raw = serializeSession();
+  if(!raw || !raw.sid) return;
+  const map = loadSessionsMap();
+  map[raw.sid] = raw;
+  // keep only the most recently-saved N sessions so storage doesn't grow forever
+  const entries = Object.entries(map).sort((a,b)=> (b[1].savedAt||0) - (a[1].savedAt||0));
+  const pruned = {};
+  entries.slice(0, MAX_SAVED_SESSIONS).forEach(([sid, v]) => { pruned[sid] = v; });
+  saveSessionsMap(pruned);
+}
+function loadSavedSessionsList(){
+  const map = loadSessionsMap();
+  return Object.values(map).sort((a,b)=> (b.savedAt||0) - (a.savedAt||0));
+}
+function loadSavedSessionBySid(sid){
+  const map = loadSessionsMap();
+  return map[sid] || null;
+}
+function clearSavedSession(sid){
+  if(!sid) return;
+  const map = loadSessionsMap();
+  delete map[sid];
+  saveSessionsMap(map);
+}
+function clearAllSavedSessions(){ lsRemove(LS_SESSIONS); }
+
+function resumeSession(sid){
+  const raw = loadSavedSessionBySid(sid);
+  if(!raw) return;
+  SESSION = {
+    sid: raw.sid || sid,
+    title: raw.title,
+    ids: raw.ids,
+    answers: raw.answers || {},
+    flagged: new Set(raw.flagged || []),
+    revealed: new Set(raw.revealed || []),
+    statsRecorded: new Set(raw.statsRecorded || []),
+    cur: raw.cur || 0,
+    mode: raw.mode,
+    instant: !!raw.instant,
+    timerSec: raw.timerSec,
+    timeLeft: raw.timeLeft,
+    startedAt: raw.startedAt,
+    submitted: false
+  };
+  go('exam');
+  startTimerIfNeeded();
+}
+
+function discardSavedSession(sid){
+  showModal('이어풀기 삭제', '저장된 중단 지점을 삭제합니다. 계속하시겠습니까?', ()=>{
+    clearSavedSession(sid);
+    toast('삭제되었습니다.');
+    render();
+  });
+}
+
+function exitExamConfirm(){
+  showModal('시험 중단', '여기까지 중단하고 홈으로 돌아갈까요?\n중단한 부분은 저장되어 나중에 이어서 풀 수 있습니다.', ()=>{
+    doPauseAndExit();
+  });
+}
+function doPauseAndExit(){
+  if(SESSION && !SESSION.submitted){
+    saveSessionToStorage();
+    toast('진행 상황이 저장되었습니다. 홈에서 이어서 풀 수 있어요.');
+  }
+  if(TIMER_HANDLE){ clearInterval(TIMER_HANDLE); TIMER_HANDLE = null; }
+  SESSION = null;
+  go('home');
+}
+
+/* ============== DASHBOARD STATS ============== */
+function overviewStats(){
+  const ids = Object.keys(STATS);
+  const attempted = ids.length;
+  const currentWrong = ids.filter(id => STATS[id].lastResult === 'wrong').length;
+  const everWrong = ids.filter(id => (STATS[id].wrongCount||0) >= 1).length;
+  const wrong2 = ids.filter(id => (STATS[id].wrongCount||0) >= 2).length;
+  const wrong3 = ids.filter(id => (STATS[id].wrongCount||0) >= 3).length;
+  const correctLast = ids.filter(id => STATS[id].lastResult === 'correct').length;
+  const acc = attempted ? Math.round((correctLast/attempted)*100) : 0;
+  return {attempted, currentWrong, everWrong, wrong2, wrong3, acc, total: QBANK.length};
+}
+
+/* ============== ROUTER ============== */
+function render(){
+  const app = document.getElementById('app');
+  if(SCREEN === 'exam'){
+    // While actually taking the exam, the question itself should be the very first
+    // thing on screen (especially on phones) — the brand header and the font/language/
+    // theme controls move below the question, nav buttons and palette instead of above.
+    app.innerHTML = screenHTML() + topbarHTML(true);
+  } else {
+    app.innerHTML = topbarHTML(false) + screenHTML();
+  }
+  const inExam = SCREEN === 'exam' && QBANK.length > 0;
+  document.documentElement.classList.toggle('exam-mode', inExam);
+  document.body.classList.toggle('exam-mode', inExam);
+}
+
+// Only call this on a real navigation (new screen or new question) — never on an
+// in-place update like selecting an option, which would yank the page back to the
+// top out from under someone who's scrolled down reading a long question.
+function scrollToTop(){
+  window.scrollTo(0,0);
+}
+
+function topbarHTML(isBottom){
+  return `
+  <div class="topbar ${isBottom?'topbar-bottom':''}">
+    <div class="brand">
+      <span class="mark">CBT</span>
+      <div>
+        <h1>AWS Certified Cloud Practitioner</h1>
+        <div class="sub">로컬 모의고사 · 데이터는 이 브라우저에만 저장됩니다</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-count">${QBANK.length}문제 보유 · 23회차</div>
+      <div class="topbar-actions">
+        <div class="fontctl" title="글씨 크기 조절">
+          <button onclick="changeFontScale(-${FONT_SCALE_STEP})" ${FONT_SCALE<=FONT_SCALE_MIN?'disabled':''} aria-label="글씨 작게">A−</button>
+          <span class="fontctl-val">${Math.round(FONT_SCALE*100)}%</span>
+          <button onclick="changeFontScale(${FONT_SCALE_STEP})" ${FONT_SCALE>=FONT_SCALE_MAX?'disabled':''} aria-label="글씨 크게">A+</button>
+        </div>
+        <select class="langselect" onchange="setLangMode(this.value)" title="언어 표시 방식">
+          ${LANG_MODES.map(m=>`<option value="${m}" ${m===LANG_MODE?'selected':''}>${LANG_LABELS[m]}</option>`).join('')}
+        </select>
+        <button class="iconbtn" onclick="toggleTheme()" title="라이트/다크 모드 전환">${THEME==='dark' ? '🌙 다크' : '☀️ 라이트'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+let SCREEN = 'home';
+let SCREEN_PARAM = null;
+
+function go(screen, param){
+  SCREEN = screen; SCREEN_PARAM = param || null;
+  render();
+  scrollToTop();
+}
+
+function screenHTML(){
+  if(QBANK.length === 0) return noQbankScreen();
+  if(SCREEN === 'home') return homeScreen();
+  if(SCREEN === 'pickExam') return pickExamScreen();
+  if(SCREEN === 'pickRandom') return pickRandomScreen();
+  if(SCREEN === 'exam') return examScreen();
+  if(SCREEN === 'results') return resultsScreen();
+  if(SCREEN === 'history') return historyScreen();
+  return homeScreen();
+}
+
+/* ============== HOME ============== */
+function resumeCardHTML(){
+  const list = loadSavedSessionsList();
+  if(list.length === 0) return '';
+  const items = list.map(raw=>{
+    const total = raw.ids.length;
+    const answered = Object.keys(raw.answers||{}).filter(id=>(raw.answers[id]||[]).length>0).length;
+    return `
+    <div class="resume-item">
+      <div class="resume-item-info">
+        <div class="resume-item-title">${escapeHTML(raw.title)}</div>
+        <div class="desc">진행 ${answered}/${total}문제 답변함</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-sm" onclick="resumeSession('${raw.sid}')">이어풀기</button>
+        <button class="btn btn-danger btn-sm" onclick="discardSavedSession('${raw.sid}')">삭제</button>
+      </div>
+    </div>`;
+  }).join('');
+  return `
+  <div class="card resume-card">
+    <h2>⏸ 중단된 시험이 ${list.length}개 있습니다</h2>
+    <p class="desc">다른 회차를 살펴봐도 각 시험의 중단 지점은 서로 보존됩니다.</p>
+    ${items}
+  </div>`;
+}
+
+function homeScreen(){
+  const o = overviewStats();
+  return `
+  ${resumeCardHTML()}
+  <div class="card">
+    <h2>학습 현황</h2>
+    <p class="desc">전체 ${o.total}문제 중 진행 상황입니다.</p>
+    <div class="stat-row">
+      <div class="stat"><div class="num">${o.attempted}</div><div class="label">풀어본 문제</div></div>
+      <div class="stat"><div class="num" style="color:var(--red)">${o.currentWrong}</div><div class="label">현재 오답 (최근 시도 기준)</div></div>
+      <div class="stat"><div class="num" style="color:var(--text)">${o.acc}%</div><div class="label">최근 정답률</div></div>
+      <div class="stat"><div class="num" style="color:var(--text)">${o.everWrong}</div><div class="label">누적 오답 경험 문제</div></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>📝 회차별 모의시험</h2>
+      <p class="desc">23개 회차 중 하나를 선택해 실제 시험지처럼 풀어봅니다. 즉시채점 모드를 켜면 문제마다 정답을 바로 확인할 수 있습니다.</p>
+      <button class="btn btn-primary btn-block" onclick="go('pickExam')">회차 선택하기</button>
+    </div>
+    <div class="card">
+      <h2>🎯 전체 랜덤 모의고사</h2>
+      <p class="desc">전체 문제 풀에서 무작위로 추출해 실전 시험 형식(기본 65문제 · 90분)으로 응시합니다.</p>
+      <button class="btn btn-primary btn-block" onclick="go('pickRandom')">랜덤 모의고사 설정</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔁 오답 모아풀기</h2>
+    <p class="desc">틀린 문제를 누적 오답 횟수(가중치) 기준으로 모아서 다시 풉니다. 횟수가 많을수록 먼저 나옵니다.</p>
+    <div class="checkbox-row" style="margin-bottom:12px;">
+      <input type="checkbox" id="wrongInstantChk" checked>
+      <label for="wrongInstantChk">즉시채점 모드 (문제마다 정답 바로 확인)</label>
+    </div>
+    <div class="grid3">
+      ${wrongOptionCard('current', '현재 오답', '최근 시도에서 틀린 문제만', o.currentWrong)}
+      ${wrongOptionCard('ge2', '2회 이상 틀린 문제', '누적 오답 횟수 ≥ 2', o.wrong2)}
+      ${wrongOptionCard('ge3', '3회 이상 틀린 문제', '누적 오답 횟수 ≥ 3', o.wrong3)}
+    </div>
+    <div class="btn-row">
+      <button class="btn ${o.everWrong? '':'disabled'}" ${o.everWrong? '':'disabled'} onclick="startWrongSession('all')">오답 전체 다시풀기 (누적 1회+, ${o.everWrong}문제)</button>
+    </div>
+    <hr class="sep">
+    <p class="desc" style="margin-bottom:8px;">오답 기록을 파일로 내보내거나 가져올 수 있습니다. 문제·정답 내용은 포함되지 않고, 문제 번호와 오답 횟수만 저장됩니다 (이 웹 앱이 있는 다른 기기/브라우저에서 이어서 풀 때 사용).</p>
+    <div class="btn-row">
+      <button class="btn ${o.everWrong? '':'disabled'}" ${o.everWrong? '':'disabled'} onclick="exportWrongQuestions()">⬇ 오답 내보내기</button>
+      <button class="btn" onclick="triggerImportWrongFile()">⬆ 오답 가져오기</button>
+      <input type="file" id="importWrongFile" accept="application/json,.json" style="display:none" onchange="handleImportWrongFile(event)">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💾 전체 백업 (다른 컴퓨터로 이동)</h2>
+    <p class="desc">모든 문제별 풀이 기록(맞음/틀림 횟수)과 학습 기록 히스토리를 파일로 내보내거나 가져올 수 있습니다. 문제·정답 내용은 포함되지 않습니다. 데이터는 이 브라우저에만 저장되므로, 다른 컴퓨터·브라우저에서 이어서 사용하려면 이 백업 파일을 옮겨서 가져오기 해주세요.</p>
+    <div class="btn-row">
+      <button class="btn" onclick="exportFullBackup()">⬇ 전체 백업 내보내기</button>
+      <button class="btn" onclick="triggerImportBackupFile()">⬆ 전체 백업 가져오기</button>
+      <input type="file" id="importBackupFile" accept="application/json,.json" style="display:none" onchange="handleImportBackupFile(event)">
+    </div>
+  </div>
+
+  ${qbankStatusCardHTML()}
+
+  <div class="grid2">
+    <div class="card">
+      <h2>📊 학습 기록</h2>
+      <p class="desc">지난 모의고사 결과 히스토리를 확인합니다. (${HISTORY.length}건)</p>
+      <button class="btn btn-block" onclick="go('history')">기록 보기</button>
+    </div>
+    <div class="card">
+      <h2>⚠️ 데이터 초기화</h2>
+      <p class="desc">저장된 모든 풀이 기록과 오답 통계를 삭제합니다. 되돌릴 수 없습니다.</p>
+      <button class="btn btn-danger btn-block" onclick="confirmReset()">전체 초기화</button>
+    </div>
+  </div>
+  `;
+}
+
+function wrongOptionCard(key, title, sub, count){
+  const disabled = count === 0;
+  return `
+  <div style="background:var(--bg-elev);border:1px solid var(--line-soft);border-radius:8px;padding:14px;">
+    <div style="font-size:13px;font-weight:600;margin-bottom:2px;">${title}</div>
+    <div style="font-size:11.5px;color:var(--text-faint);margin-bottom:10px;">${sub}</div>
+    <div style="font-family:var(--mono);font-size:20px;color:${disabled?'var(--text-faint)':'var(--orange)'};margin-bottom:10px;">${count}<span style="font-size:11px;color:var(--text-faint);"> 문제</span></div>
+    <button class="btn btn-sm btn-block" ${disabled?'disabled':''} onclick="startWrongSession('${key}')">시작</button>
+  </div>`;
+}
+
+/* ============== PICK EXAM (회차별) ============== */
+function pickExamScreen(){
+  const rows = EXAM_NUMBERS.map(n=>{
+    const qs = QBANK.filter(q=>q.exam===n);
+    const attempted = qs.filter(q=>STATS[q.id]).length;
+    const correct = qs.filter(q=>STATS[q.id] && STATS[q.id].lastResult==='correct').length;
+    return `<tr>
+      <td class="examname">Practice Exam ${n}</td>
+      <td>${qs.length}문제</td>
+      <td>${attempted}/${qs.length}</td>
+      <td>${attempted? Math.round(correct/attempted*100)+'%' : '-'}</td>
+      <td><button class="btn btn-sm" onclick="startExamSet(${n}, false)">순서대로</button>
+          <button class="btn btn-sm" onclick="startExamSet(${n}, true)">무작위</button></td>
+    </tr>`;
+  }).join('');
+  return `
+  <div class="backlink" onclick="go('home')">← 홈으로</div>
+  <div class="card">
+    <h2>회차별 모의시험</h2>
+    <p class="desc">실제 시험지 그대로의 회차입니다.</p>
+    <div class="checkbox-row" style="margin-bottom:14px;">
+      <input type="checkbox" id="instantChk" checked>
+      <label for="instantChk">즉시채점 모드 (문제마다 정답 바로 확인) — 끄면 실전처럼 제출 전까지 정답이 보이지 않습니다.</label>
+    </div>
+    <div class="table-scroll"><table class="examlist">
+      <tr><th style="text-align:left">회차</th><th>문항수</th><th>진행</th><th>정답률</th><th></th></tr>
+      ${rows}
+    </table></div>
+  </div>`;
+}
+
+function readInstantChk(id){
+  const el = document.getElementById(id || 'instantChk');
+  return el ? el.checked : true;
+}
+
+function startExamSet(examNum, doShuffle){
+  let ids = QBANK.filter(q=>q.exam===examNum).map(q=>q.id);
+  if(doShuffle) ids = shuffle(ids);
+  beginSession(ids, `Practice Exam ${examNum}`, {mode:'exam', timerSec:null, instant: readInstantChk('instantChk')});
+}
+
+/* ============== PICK RANDOM (전체 랜덤) ============== */
+function pickRandomScreen(){
+  return `
+  <div class="backlink" onclick="go('home')">← 홈으로</div>
+  <div class="card">
+    <h2>전체 랜덤 모의고사</h2>
+    <p class="desc">전체 ${QBANK.length}문제 풀에서 무작위로 추출합니다. 실제 시험은 65문제 · 90분입니다.</p>
+    <div class="grid2">
+      <label class="field">문항 수
+        <input type="number" id="randCount" value="65" min="5" max="${QBANK.length}">
+      </label>
+      <label class="field">제한 시간 (분, 0=제한없음)
+        <input type="number" id="randTime" value="90" min="0" max="240">
+      </label>
+    </div>
+    <div class="checkbox-row" style="margin-top:14px;">
+      <input type="checkbox" id="instantChk">
+      <label for="instantChk">즉시채점 모드 (문제마다 정답 바로 확인) — 실전 모의고사는 보통 끄고 푸는 것을 추천합니다.</label>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="startRandomExam()">시작</button>
+    </div>
+  </div>`;
+}
+
+function startRandomExam(){
+  const count = Math.min(QBANK.length, Math.max(5, parseInt(document.getElementById('randCount').value)||65));
+  const mins = Math.max(0, parseInt(document.getElementById('randTime').value)||0);
+  const ids = shuffle(QBANK.map(q=>q.id)).slice(0, count);
+  beginSession(ids, `랜덤 모의고사 (${count}문제)`, {mode:'random', timerSec: mins>0? mins*60 : null, instant: readInstantChk('instantChk')});
+}
+
+/* ============== WRONG POOL ============== */
+function startWrongSession(key){
+  let pool;
+  let title;
+  if(key === 'current'){
+    pool = QBANK.filter(q => STATS[q.id] && STATS[q.id].lastResult === 'wrong');
+    title = '오답 모아풀기 (현재 오답)';
+  } else if(key === 'ge2'){
+    pool = QBANK.filter(q => STATS[q.id] && (STATS[q.id].wrongCount||0) >= 2);
+    title = '오답 모아풀기 (2회 이상 누적 오답)';
+  } else if(key === 'ge3'){
+    pool = QBANK.filter(q => STATS[q.id] && (STATS[q.id].wrongCount||0) >= 3);
+    title = '오답 모아풀기 (3회 이상 누적 오답)';
+  } else {
+    pool = QBANK.filter(q => STATS[q.id] && (STATS[q.id].wrongCount||0) >= 1);
+    title = '오답 전체 다시풀기 (누적 1회 이상)';
+  }
+  if(pool.length === 0){ toast('해당 조건의 문제가 없습니다.'); return; }
+  // weight order: highest cumulative wrongCount first
+  pool = pool.slice().sort((a,b)=> (STATS[b.id].wrongCount||0) - (STATS[a.id].wrongCount||0));
+  const ids = pool.map(q=>q.id);
+  beginSession(ids, title, {mode:'wrong', timerSec:null, instant: readInstantChk('wrongInstantChk')});
+}
+
+/* ---- export / import wrong-question records (ids + counts only, no question/answer text) ----
+   Lets a person move their "wrong question" list to another browser/device that has this
+   same web app + question bank, and keep practicing from where they left off. */
+function exportWrongQuestions(){
+  const ids = Object.keys(STATS).filter(id => (STATS[id].wrongCount||0) >= 1);
+  if(ids.length === 0){ toast('내보낼 오답 문제가 없습니다.'); return; }
+  const items = ids.map(id => ({
+    id,
+    wrongCount: STATS[id].wrongCount || 0,
+    correctCount: STATS[id].correctCount || 0,
+    attempts: STATS[id].attempts || 0,
+    lastResult: STATS[id].lastResult || 'wrong'
+  }));
+  const payload = {
+    type: 'awsccp-wrong-export',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    count: items.length,
+    items
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const d = new Date();
+  const stamp = d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `aws-ccp-wrong-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  toast(`${items.length}문제의 오답 기록을 내보냈습니다.`);
+}
+
+function triggerImportWrongFile(){
+  const el = document.getElementById('importWrongFile');
+  if(el) el.click();
+}
+
+function handleImportWrongFile(evt){
+  const file = evt.target.files && evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      importWrongData(data);
+    }catch(e){
+      toast('파일을 읽을 수 없습니다. 올바른 내보내기 파일인지 확인해주세요.');
+    }
+    evt.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function importWrongData(data){
+  const items = Array.isArray(data && data.items) ? data.items : null;
+  if(!items){ toast('형식이 올바르지 않은 파일입니다.'); return; }
+  let added = 0, skipped = 0;
+  items.forEach(item=>{
+    if(!item || !item.id || !QBYID[item.id]){ skipped++; return; }
+    // merge additively: existing progress is preserved, and the question is marked
+    // wrong again so it shows up in the wrong-question pools to be retried.
+    const existing = STATS[item.id] || {attempts:0, correctCount:0, wrongCount:0};
+    existing.wrongCount = Math.max(existing.wrongCount||0, item.wrongCount||1);
+    existing.correctCount = Math.max(existing.correctCount||0, item.correctCount||0);
+    existing.attempts = Math.max(existing.attempts||0, item.attempts||0, existing.wrongCount);
+    existing.lastResult = 'wrong';
+    existing.lastAt = Date.now();
+    STATS[item.id] = existing;
+    added++;
+  });
+  saveStats(STATS);
+  toast(`오답 ${added}문제를 가져왔습니다.${skipped? ' ('+skipped+'개는 현재 문제집에 없어 건너뜀)':''}`);
+  render();
+}
+
+/* ----- full backup (all stats + history, for moving to a different computer/browser) ----- */
+function exportFullBackup(){
+  const payload = {
+    type: 'awsccp-full-backup',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    stats: STATS,
+    history: HISTORY
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const stamp = new Date().toISOString().slice(0,10);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `aws-ccp-backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('전체 백업 파일을 내보냈습니다.');
+}
+function triggerImportBackupFile(){ document.getElementById('importBackupFile').click(); }
+function handleImportBackupFile(evt){
+  const file = evt.target.files && evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      importFullBackup(data);
+    }catch(e){
+      toast('파일을 읽을 수 없습니다. JSON 형식을 확인해주세요.');
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+function importFullBackup(data){
+  if(!data || data.type !== 'awsccp-full-backup' || !data.stats || typeof data.stats !== 'object'){
+    toast('형식이 올바르지 않은 백업 파일입니다.');
+    return;
+  }
+  let merged = 0, skipped = 0;
+  // merge per-question stats: take the max of each monotonic counter (so re-importing the
+  // same backup twice is harmless / idempotent) and prefer the more recently-updated side
+  // for "last result" fields.
+  Object.keys(data.stats).forEach(id=>{
+    const incoming = data.stats[id];
+    if(!incoming || !QBYID[id]){ skipped++; return; }
+    const existing = STATS[id];
+    if(!existing){
+      STATS[id] = {
+        attempts: incoming.attempts||0,
+        correctCount: incoming.correctCount||0,
+        wrongCount: incoming.wrongCount||0,
+        lastResult: incoming.lastResult,
+        lastAnswer: incoming.lastAnswer,
+        lastAt: incoming.lastAt
+      };
+      merged++;
+      return;
+    }
+    const out = {
+      attempts: Math.max(existing.attempts||0, incoming.attempts||0),
+      correctCount: Math.max(existing.correctCount||0, incoming.correctCount||0),
+      wrongCount: Math.max(existing.wrongCount||0, incoming.wrongCount||0)
+    };
+    if((incoming.lastAt||0) >= (existing.lastAt||0)){
+      out.lastResult = incoming.lastResult || existing.lastResult;
+      out.lastAnswer = incoming.lastAnswer || existing.lastAnswer;
+      out.lastAt = incoming.lastAt || existing.lastAt;
+    } else {
+      out.lastResult = existing.lastResult;
+      out.lastAnswer = existing.lastAnswer;
+      out.lastAt = existing.lastAt;
+    }
+    STATS[id] = out;
+    merged++;
+  });
+  saveStats(STATS);
+
+  const incomingHistory = Array.isArray(data.history) ? data.history : [];
+  const seen = new Set(HISTORY.map(h => [h.date, h.title, h.total, h.correct].join('|')));
+  let addedHist = 0;
+  incomingHistory.forEach(h=>{
+    if(!h) return;
+    const key = [h.date, h.title, h.total, h.correct].join('|');
+    if(!seen.has(key)){ HISTORY.push(h); seen.add(key); addedHist++; }
+  });
+  HISTORY.sort((a,b)=> (b.date||0) - (a.date||0));
+  if(HISTORY.length > 200) HISTORY.length = 200;
+  saveHistory(HISTORY);
+
+  toast(`전체 백업을 가져왔습니다. 문제 기록 ${merged}건, 기록 히스토리 ${addedHist}건 추가됨.${skipped? ' ('+skipped+'개 문제는 현재 문제집에 없어 건너뜀)':''}`);
+  render();
+}
+
+/* ----- question bank (questions.js) manual import, for browsers that won't auto-load
+   the sibling <script src="questions.js"> (seen on some mobile browsers when opening a
+   local file, e.g. iOS Edge). Once imported, the data is cached in localStorage so it
+   loads automatically on later visits in that same browser. ----- */
+function triggerImportQbankFile(){ document.getElementById('importQbankFile').click(); }
+function handleImportQbankFile(evt){
+  const file = evt.target.files && evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      importQbankText(reader.result);
+    }catch(e){
+      toast('문제 데이터를 불러오지 못했습니다: ' + (e && e.message ? e.message : '파일 형식을 확인해주세요.'));
+    }
+  };
+  reader.onerror = () => toast('파일을 읽을 수 없습니다.');
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+function parseQbankText(text){
+  let body = String(text || '').trim();
+  const idx = body.indexOf('QBANK_DATA');
+  if(idx !== -1){
+    const eqIdx = body.indexOf('=', idx);
+    if(eqIdx !== -1) body = body.slice(eqIdx + 1).trim();
+  }
+  if(body.endsWith(';')) body = body.slice(0, -1).trim();
+  // questions.js is the user's own local data file (object-literal JS, not strict JSON),
+  // so it's evaluated as a JS expression rather than JSON.parse'd.
+  return Function('"use strict"; return (' + body + ');')();
+}
+function importQbankText(text){
+  const data = parseQbankText(text);
+  if(!Array.isArray(data) || data.length === 0 || !data[0] || !data[0].id || !data[0].question){
+    toast('올바른 questions.js 파일이 아닌 것 같습니다.');
+    return;
+  }
+  rebuildQuestionBank(data);
+  try{ localStorage.setItem(LS_QBANK_CACHE, JSON.stringify(data)); }catch(e){ /* ignore */ }
+  toast(`문제 데이터 ${data.length}개를 불러왔습니다. 이 브라우저에 저장되어 다음부터는 자동으로 불러와집니다.`);
+  if(SCREEN !== 'home') go('home'); else render();
+}
+function noQbankScreen(){
+  return `
+  <div class="card">
+    <h2>⚠️ 문제 데이터를 불러오지 못했습니다</h2>
+    <p class="desc">questions.js 파일을 자동으로 불러오지 못했습니다. 모바일 브라우저(예: 아이폰 Edge)에서 로컬 파일을 열 때 가끔 발생합니다. 아래에서 questions.js 파일을 직접 선택해 가져오면, 이후로는 이 브라우저에서 자동으로 불러와집니다.</p>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="triggerImportQbankFile()">📂 questions.js 파일 선택해서 가져오기</button>
+    </div>
+    <input type="file" id="importQbankFile" accept=".js,.json,text/javascript,text/plain,application/octet-stream" style="display:none" onchange="handleImportQbankFile(event)">
+  </div>`;
+}
+function qbankStatusCardHTML(){
+  const source = (typeof QBANK_DATA !== 'undefined' && Array.isArray(QBANK_DATA) && QBANK_DATA.length)
+    ? 'questions.js 파일에서 자동으로 불러옴'
+    : '가져오기 기능으로 직접 불러옴 (이 브라우저에 저장됨)';
+  return `
+  <div class="card">
+    <h2>🗂 문제 데이터</h2>
+    <p class="desc">현재 ${QBANK.length}문제 로드됨 · ${source}</p>
+    <div class="btn-row">
+      <button class="btn" onclick="triggerImportQbankFile()">📂 questions.js 다시 가져오기</button>
+    </div>
+    <input type="file" id="importQbankFile" accept=".js,.json,text/javascript,text/plain,application/octet-stream" style="display:none" onchange="handleImportQbankFile(event)">
+  </div>`;
+}
+
+/* ============== SESSION / EXAM TAKING ============== */
+function beginSession(ids, title, opts){
+  // Starting (or just glancing at) a new exam must NOT touch any other exam's saved
+  // pause point — each session gets its own id and is saved independently, so multiple
+  // exams can be paused at the same time without losing each other's progress.
+  SESSION = {
+    sid: genSid(),
+    title,
+    ids,
+    answers: {},     // id -> array of letters
+    flagged: new Set(),
+    revealed: new Set(),
+    statsRecorded: new Set(),
+    cur: 0,
+    mode: opts.mode,
+    instant: !!opts.instant,
+    timerSec: opts.timerSec,
+    timeLeft: opts.timerSec,
+    startedAt: Date.now(),
+    submitted: false
+  };
+  go('exam');
+  startTimerIfNeeded();
+}
+
+function startTimerIfNeeded(){
+  if(TIMER_HANDLE){ clearInterval(TIMER_HANDLE); TIMER_HANDLE = null; }
+  if(SESSION && SESSION.timerSec){
+    TIMER_HANDLE = setInterval(()=>{
+      if(!SESSION || SESSION.submitted){ clearInterval(TIMER_HANDLE); return; }
+      SESSION.timeLeft -= 1;
+      const el = document.getElementById('examTimer');
+      if(el){
+        el.textContent = fmtTime(SESSION.timeLeft);
+        el.classList.toggle('low', SESSION.timeLeft <= 60);
+      }
+      if(SESSION.timeLeft <= 0){
+        clearInterval(TIMER_HANDLE);
+        toast('시간이 종료되어 자동 제출됩니다.');
+        submitExam();
+      }
+    }, 1000);
+  }
+}
+
+function examScreen(){
+  if(!SESSION) { go('home'); return ''; }
+  const q = QBYID[SESSION.ids[SESSION.cur]];
+  const total = SESSION.ids.length;
+  const answeredCount = Object.keys(SESSION.answers).filter(id=>SESSION.answers[id].length>0).length;
+  const needN = q.multi ? (wordNum(q.question) || q.answer.length) : 1;
+  const selected = SESSION.answers[q.id] || [];
+  const revealed = SESSION.instant && SESSION.revealed.has(q.id);
+  const tr = transFor(q);
+  // question-level language pick (checked against the question's own translation)
+  const qPick = langPick(!!(tr && tr.qk));
+
+  const optsHTML = q.options.map(o=>{
+    const isSel = selected.includes(o.letter);
+    let cls = isSel ? 'selected' : '';
+    if(revealed){
+      const isAns = q.answer.includes(o.letter);
+      if(isAns) cls += ' rev-correct';
+      else if(isSel && !isAns) cls += ' rev-wrong';
+      cls += ' locked';
+    }
+    const onclick = revealed ? '' : `onclick="toggleOption('${q.id}','${o.letter}', ${q.multi})"`;
+    // per-option language pick: an option's own Korean translation may be missing
+    // even when the question's translation exists, so this must be checked separately.
+    const oKo = (tr && tr.o) ? tr.o[o.letter] : null;
+    const oPick = langPick(!!oKo);
+    const oCls = langClasses(oPick);
+    const enLine = oPick.showEn ? `<div class="otext-en${oCls.enExtra}">${escapeHTML(o.text)}</div>` : '';
+    const koLine = oPick.showKo ? `<div class="otext-ko${oCls.koExtra}">${escapeHTML(oKo)}</div>` : '';
+    const lines = koFirst() ? (koLine + enLine) : (enLine + koLine);
+    return `<div class="opt ${cls}" ${onclick}>
+      <div class="letter">${o.letter}</div>
+      <div class="otext">${lines}</div>
+    </div>`;
+  }).join('');
+
+  let feedbackHTML = '';
+  if(revealed){
+    const isCorrectNow = setEqual(selected, q.answer);
+    feedbackHTML = `<div class="instant-feedback ${isCorrectNow?'is-correct':'is-wrong'}">
+      ${isCorrectNow? '✅ 정답입니다!' : '❌ 오답입니다.'}
+      <div class="ans-line">정답: ${q.answer.join(', ')}${selected.length? ' · 선택한 답: '+selected.join(', '):''}</div>
+    </div>`;
+  }
+
+  const needsMore = selected.length !== needN;
+  const checkBtnHTML = (SESSION.instant && !revealed)
+    ? `<button class="btn btn-primary" ${needsMore?'disabled':''} onclick="revealAnswer('${q.id}')">정답 확인</button>`
+    : '';
+
+  return `
+  <div class="exam-layout">
+    <div class="exam-main">
+      <div class="qcard">
+        <div class="qmeta">
+          <div class="qnum">문제 ${SESSION.cur+1}/${total}</div>
+          <div class="qmeta-right">
+            ${SESSION.timerSec? `<span id="examTimer" class="timer">${fmtTime(SESSION.timeLeft)}</span>` : ''}
+            <button class="btn btn-sm ${SESSION.flagged.has(q.id)?'btn-primary':''}" onclick="toggleFlag('${q.id}')">${SESSION.flagged.has(q.id)? '🚩 표시됨':'🚩 검토 표시'}</button>
+          </div>
+        </div>
+        <div class="qsub">${escapeHTML(SESSION.title)} · 답변 ${answeredCount}/${total}</div>
+        ${(() => {
+          const qCls = langClasses(qPick);
+          const en = qPick.showEn ? `<div class="qtext${qCls.enExtra}">${escapeHTML(q.question)}</div>` : '';
+          const ko = qPick.showKo ? `<div class="qtext-ko${qCls.koExtra}">${escapeHTML(tr.qk)}</div>` : '';
+          return koFirst() ? (ko + en) : (en + ko);
+        })()}
+        ${q.multi? (() => {
+          let hintCls = '', hintMsg = `정답을 ${needN}개 선택하세요.`;
+          if(selected.length === 0){
+            hintMsg += ` (0개 선택됨)`;
+          } else if(selected.length === needN){
+            hintCls = ' qhint-complete';
+            hintMsg = `✓ ${needN}개 선택 완료`;
+          } else {
+            hintCls = ' qhint-incomplete';
+            hintMsg = selected.length < needN
+              ? `⚠ ${needN - selected.length}개 더 선택하세요. (현재 ${selected.length}/${needN}개)`
+              : `⚠ ${needN}개만 선택하세요. (현재 ${selected.length}/${needN}개)`;
+          }
+          return `<div class="qhint${hintCls}">${hintMsg}</div>`;
+        })() : ''}
+        <div class="opts">${optsHTML}</div>
+        ${feedbackHTML}
+      </div>
+      <div class="examfoot">
+        <div class="btn-row" style="margin:0;">
+          <button class="btn btn-sm" onclick="exitExamConfirm()">⏸ 중단하고 홈으로</button>
+          <button class="btn" onclick="navQ(-1)" ${SESSION.cur===0?'disabled':''}>← 이전</button>
+          ${checkBtnHTML}
+          <button class="btn" onclick="navQ(1)" ${SESSION.cur===total-1?'disabled':''}>다음 →</button>
+        </div>
+        <button class="btn btn-primary" onclick="confirmSubmit()">제출하기</button>
+      </div>
+    </div>
+    <div class="exam-side">
+      <div class="card ${PALETTE_OPEN?'':'palette-collapsed'}" style="padding:14px;">
+        <div class="side-head">
+          <div class="palette-title">문제 목록</div>
+          <button class="palette-toggle" onclick="togglePalette()">${PALETTE_OPEN? '숨기기 ▴' : '펼치기 ▾'}</button>
+        </div>
+        <div class="palette">${paletteHTML()}</div>
+        <div class="legend">
+          <div><span class="sw" style="background:var(--bg-elev);border:1px solid var(--line)"></span>미답변</div>
+          <div><span class="sw" style="background:var(--answered-bg)"></span>답변함</div>
+          <div><span class="sw" style="background:var(--orange)"></span>현재 문제</div>
+          <div>🔵 점 = 검토 표시</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function paletteHTML(){
+  return SESSION.ids.map((id,i)=>{
+    const answered = SESSION.answers[id] && SESSION.answers[id].length>0;
+    const flagged = SESSION.flagged.has(id);
+    const cls = ['pbtn'];
+    if(i===SESSION.cur) cls.push('cur');
+    else if(answered) cls.push('answered');
+    if(flagged) cls.push('flagged');
+    return `<button class="${cls.join(' ')}" onclick="navTo(${i})">${i+1}</button>`;
+  }).join('');
+}
+
+function escapeHTML(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function toggleOption(qid, letter, multi){
+  if(SESSION.instant && SESSION.revealed.has(qid)) return; // locked after reveal
+  const cur = SESSION.answers[qid] || [];
+  let next;
+  if(multi){
+    next = cur.includes(letter) ? cur.filter(l=>l!==letter) : [...cur, letter];
+  } else {
+    next = cur.includes(letter) ? [] : [letter];
+  }
+  SESSION.answers[qid] = next;
+  render();
+}
+
+function revealAnswer(qid){
+  if(!SESSION || !SESSION.instant) return;
+  if(SESSION.revealed.has(qid)) return;
+  SESSION.revealed.add(qid);
+
+  const q = QBYID[qid];
+  const sel = SESSION.answers[qid] || [];
+  const isCorrect = setEqual(sel, q.answer);
+
+  STATS[qid] = STATS[qid] || {attempts:0, correctCount:0, wrongCount:0};
+  STATS[qid].attempts += 1;
+  if(isCorrect){ STATS[qid].correctCount += 1; STATS[qid].lastResult = 'correct'; }
+  else { STATS[qid].wrongCount += 1; STATS[qid].lastResult = 'wrong'; }
+  STATS[qid].lastAnswer = sel;
+  STATS[qid].lastAt = Date.now();
+  saveStats(STATS);
+  SESSION.statsRecorded.add(qid);
+
+  render();
+}
+
+function toggleFlag(qid){
+  if(SESSION.flagged.has(qid)) SESSION.flagged.delete(qid);
+  else SESSION.flagged.add(qid);
+  render();
+}
+
+function navQ(delta){
+  SESSION.cur = Math.min(SESSION.ids.length-1, Math.max(0, SESSION.cur+delta));
+  render();
+  scrollToTop();
+}
+function navTo(i){ SESSION.cur = i; render(); scrollToTop(); }
+
+function confirmSubmit(){
+  const total = SESSION.ids.length;
+  const answeredCount = Object.keys(SESSION.answers).filter(id=>SESSION.answers[id].length>0).length;
+  const unanswered = total - answeredCount;
+  let msg = '제출하면 더 이상 답을 수정할 수 없습니다. 제출하시겠습니까?';
+  if(unanswered>0) msg = `아직 ${unanswered}문제가 미답변 상태입니다.\n` + msg;
+  showModal('시험 제출', msg, ()=>submitExam());
+}
+
+function submitExam(){
+  if(!SESSION || SESSION.submitted) return;
+  SESSION.submitted = true;
+  if(TIMER_HANDLE){ clearInterval(TIMER_HANDLE); TIMER_HANDLE = null; }
+  clearSavedSession(SESSION.sid);
+
+  let correctCount = 0;
+  const detail = [];
+  SESSION.ids.forEach(id=>{
+    const q = QBYID[id];
+    const sel = SESSION.answers[id] || [];
+    const isCorrect = setEqual(sel, q.answer);
+    if(isCorrect) correctCount++;
+
+    // avoid double-counting stats for questions already recorded via instant-mode reveal
+    if(!SESSION.statsRecorded.has(id)){
+      STATS[id] = STATS[id] || {attempts:0, correctCount:0, wrongCount:0};
+      STATS[id].attempts += 1;
+      if(isCorrect){ STATS[id].correctCount += 1; STATS[id].lastResult = 'correct'; }
+      else { STATS[id].wrongCount += 1; STATS[id].lastResult = 'wrong'; }
+      STATS[id].lastAnswer = sel;
+      STATS[id].lastAt = Date.now();
+    }
+
+    detail.push({id, sel, isCorrect});
+  });
+  saveStats(STATS);
+
+  const total = SESSION.ids.length;
+  const pct = total? Math.round(correctCount/total*100) : 0;
+  HISTORY.unshift({
+    date: Date.now(),
+    title: SESSION.title,
+    mode: SESSION.mode,
+    total, correct: correctCount, pct
+  });
+  if(HISTORY.length>200) HISTORY = HISTORY.slice(0,200);
+  saveHistory(HISTORY);
+
+  SESSION.result = {correctCount, total, pct, detail};
+  go('results');
+}
+
+/* ============== RESULTS ============== */
+function resultsScreen(){
+  if(!SESSION || !SESSION.result) { go('home'); return ''; }
+  const r = SESSION.result;
+  const passed = r.pct >= 70;
+  const scaled = Math.round(100 + (r.pct/100)*900);
+
+  const items = r.detail.map((d,i)=>{
+    const q = QBYID[d.id];
+    const tr = transFor(q);
+    const qPick = langPick(!!(tr && tr.qk));
+    const optsHTML = q.options.map(o=>{
+      const wasSelected = d.sel.includes(o.letter);
+      const isAnswer = q.answer.includes(o.letter);
+      let cls = '';
+      if(isAnswer) cls = 'rev-correct';
+      else if(wasSelected && !isAnswer) cls = 'rev-wrong';
+      const oKo = (tr && tr.o) ? tr.o[o.letter] : null;
+      const oPick = langPick(!!oKo);
+      const oCls = langClasses(oPick);
+      const selMark = wasSelected ? ' <span style="color:var(--text-faint)">— 선택함</span>' : '';
+      const enLine = oPick.showEn ? `<div class="otext-en${oCls.enExtra}">${escapeHTML(o.text)}${selMark}</div>` : '';
+      const koLine = oPick.showKo ? `<div class="otext-ko${oCls.koExtra}">${escapeHTML(oKo)}${!oPick.showEn? selMark : ''}</div>` : '';
+      const lines = koFirst() ? (koLine + enLine) : (enLine + koLine);
+      return `<div class="opt ${cls}">
+        <div class="letter">${o.letter}</div>
+        <div class="otext">${lines}</div>
+      </div>`;
+    }).join('');
+    return `
+    <div class="revitem ${d.isCorrect?'is-correct':'is-wrong'}">
+      <div class="revhead" onclick="toggleRev(${i})">
+        <div class="revq">${i+1}. ${escapeHTML(q.question.slice(0,90))}${q.question.length>90?'…':''}</div>
+        <div>${d.isCorrect? '<span class="badge-correct">정답</span>' : '<span class="badge-wrong">오답</span>'}</div>
+      </div>
+      <div class="revbody" id="rev-${i}">
+        ${qPick.showKo ? `<div class="qtext-ko" style="margin-bottom:10px;">${escapeHTML(tr.qk)}</div>` : ''}
+        ${optsHTML}
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="backlink" onclick="go('home')">← 홈으로</div>
+  <div class="card">
+    <h2>${escapeHTML(SESSION.title)} · 결과</h2>
+    <div class="scoreboard">
+      <div class="scorecircle ${passed?'pass':'fail'}">
+        <div class="pct">${r.pct}%</div>
+        <div class="lbl">${passed?'합격 추정':'불합격 추정'}</div>
+      </div>
+      <div>
+        <div style="font-size:13px;color:var(--text-dim);margin-bottom:4px;">정답 ${r.correctCount} / ${r.total}</div>
+        <div style="font-size:13px;color:var(--text-dim);margin-bottom:4px;">추정 환산 점수 ${scaled} / 1000 (참고용, 실제 채점 방식과 다를 수 있음)</div>
+        <div style="font-size:13px;color:var(--text-dim);">합격 기준(추정) 700/1000 · 약 70%</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="toggleAllRev(true)">전체 펼치기</button>
+      <button class="btn" onclick="toggleAllRev(false)">전체 접기</button>
+      <button class="btn btn-primary" onclick="reviewWrongFromSession()">이번 시험 오답만 다시 풀기</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>문항별 리뷰</h2>
+    ${items}
+  </div>`;
+}
+
+function toggleRev(i){
+  const el = document.getElementById('rev-'+i);
+  el.classList.toggle('open');
+}
+function toggleAllRev(open){
+  document.querySelectorAll('.revbody').forEach(el=>el.classList.toggle('open', open));
+}
+
+function reviewWrongFromSession(){
+  const wrongIds = SESSION.result.detail.filter(d=>!d.isCorrect).map(d=>d.id);
+  if(wrongIds.length===0){ toast('이번 시험엔 오답이 없습니다 🎉'); return; }
+  beginSession(wrongIds, `${SESSION.title} - 오답 재시험`, {mode:'wrong', timerSec:null, instant:true});
+}
+
+/* ============== HISTORY ============== */
+function historyScreen(){
+  if(HISTORY.length===0){
+    return `<div class="backlink" onclick="go('home')">← 홈으로</div><div class="card"><div class="empty">아직 기록이 없습니다.</div></div>`;
+  }
+  const rows = HISTORY.map(h=>{
+    const d = new Date(h.date);
+    const ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    return `<tr>
+      <td style="text-align:left">${escapeHTML(h.title)}</td>
+      <td>${h.correct}/${h.total}</td>
+      <td style="color:${h.pct>=70?'var(--green)':'var(--red)'}">${h.pct}%</td>
+      <td style="color:var(--text-faint)">${ds}</td>
+    </tr>`;
+  }).join('');
+  return `
+  <div class="backlink" onclick="go('home')">← 홈으로</div>
+  <div class="card">
+    <h2>학습 기록</h2>
+    <div class="table-scroll"><table class="examlist">
+      <tr><th style="text-align:left">시험</th><th>점수</th><th>퍼센트</th><th>일시</th></tr>
+      ${rows}
+    </table></div>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="clearHistory()">기록만 삭제</button>
+    </div>
+  </div>`;
+}
+
+function clearHistory(){
+  showModal('기록 삭제', '학습 기록(점수 히스토리)만 삭제됩니다. 오답 통계는 유지됩니다.', ()=>{
+    HISTORY = []; saveHistory(HISTORY); go('history');
+  });
+}
+
+/* ============== RESET ============== */
+function confirmReset(){
+  showModal('전체 초기화', '모든 풀이 기록, 오답 통계, 학습 기록, 중단된 시험이 삭제됩니다. 계속하시겠습니까?', ()=>{
+    STATS = {}; HISTORY = [];
+    lsRemove(LS_STATS);
+    lsRemove(LS_HISTORY);
+    lsRemove(LS_SESSION);
+    clearAllSavedSessions();
+    toast('초기화되었습니다.');
+    go('home');
+  });
+}
+
+/* ============== MODAL ============== */
+function showModal(title, msg, onConfirm){
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-overlay';
+  wrap.innerHTML = `
+    <div class="modal">
+      <h3>${escapeHTML(title)}</h3>
+      <p style="white-space:pre-line;">${escapeHTML(msg)}</p>
+      <div class="btn-row">
+        <button class="btn" id="modalCancel">취소</button>
+        <button class="btn btn-primary" id="modalOk">확인</button>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+  wrap.querySelector('#modalCancel').onclick = ()=>wrap.remove();
+  wrap.querySelector('#modalOk').onclick = ()=>{ wrap.remove(); onConfirm(); };
+}
+
+/* ============== LEAVE/REFRESH GUARD ============== */
+// Shows the browser's native "Leave site? Changes you made may not be saved." dialog
+// when an exam is in progress and hasn't been submitted yet. This also catches an
+// accidental pull-to-refresh that slips through, since answers are only written to
+// localStorage when the user explicitly pauses (이 시험 화면을 빠져나갈 때), not after
+// every answer — so an unconfirmed reload here would otherwise silently lose progress.
+window.addEventListener('beforeunload', function(e){
+  if(SESSION && !SESSION.submitted){
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  }
+});
+
+/* ============== INIT ============== */
+render();
+</script>
+</body>
+</html>
