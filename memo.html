@@ -101,15 +101,15 @@
       <h2>✨ 계정 생성</h2>
       <div class="input-group">
         <label>사용할 아이디</label>
-        <input type="text" id="signup-id" placeholder="새 아이디 입력">
+        <input type="text" id="signup-id" placeholder="새 아이디 입력" onkeydown="checkEnter(event, handleSignup)">
       </div>
       <div class="input-group">
         <label>비밀번호 입력</label>
-        <input type="password" id="signup-pw" placeholder="비밀번호 입력">
+        <input type="password" id="signup-pw" placeholder="비밀번호 입력" onkeydown="checkEnter(event, handleSignup)">
       </div>
       <div class="input-group">
         <label>비밀번호 재확인</label>
-        <input type="password" id="signup-pw-confirm" placeholder="비밀번호 다시 한번 입력">
+        <input type="password" id="signup-pw-confirm" placeholder="비밀번호 다시 한번 입력" onkeydown="checkEnter(event, handleSignup)">
       </div>
       <button onclick="handleSignup()">가입 완료하기</button>
       <button class="sub-btn" onclick="toggleAuthMode(false)">로그인 화면으로 돌아가기</button>
@@ -203,7 +203,7 @@
       }
     }
 
-    // 회원가입 전송 방식 보완
+    // 회원가입 fetch 구조 전면 수정 (CORS 및 리다이렉션 대응)
     async function handleSignup() {
       const id = document.getElementById("signup-id").value;
       const password = document.getElementById("signup-pw").value;
@@ -215,7 +215,8 @@
       try {
         const res = await fetch(GAS_URL, {
           method: "POST",
-          headers: { "Content-Type": "text/plain" },
+          mode: "cors", // CORS 모드 명시
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: "signup", payload: { id, password } })
         });
         const result = await res.json();
@@ -227,11 +228,11 @@
           toggleAuthMode(false);
         }
       } catch (err) {
-        alert("회원가입 중 오류가 발생했습니다.");
+        console.error(err);
+        alert("회원가입 중 네트워크 오류가 발생했습니다. Apps Script 배포 버전을 확인해보세요.");
       }
     }
 
-    // 로그인 시 반환된 실제 ID를 받아서 표출하도록 수정
     async function handleLogin() {
       const id = document.getElementById("login-id").value;
       const password = document.getElementById("login-pw").value;
@@ -241,19 +242,21 @@
       try {
         const res = await fetch(GAS_URL, {
           method: "POST",
-          headers: { "Content-Type": "text/plain" },
+          mode: "cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: "login", payload: { id, password } })
         });
         const result = await res.json();
 
         if (result.success) {
           sessionStorage.setItem("isLoggedIn", "true");
-          sessionStorage.setItem("loginUserId", result.userId); // 반환받은 정확한 ID 매핑
+          sessionStorage.setItem("loginUserId", result.userId);
           showMemoSection();
         } else {
           alert(result.message);
         }
       } catch (err) {
+        console.error(err);
         alert("로그인 중 오류가 발생했습니다.");
       }
     }
@@ -331,7 +334,8 @@
       try {
         const res = await fetch(GAS_URL, {
           method: "POST",
-          headers: { "Content-Type": "text/plain" },
+          mode: "cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: actionType, payload: payloadData })
         });
         const result = await res.json();
@@ -350,11 +354,8 @@
       }
     }
 
-    // 애니메이션 스피너가 작동하도록 loadMemos 로직 수정
     async function loadMemos() {
       const listContainer = document.getElementById("memo-list");
-      
-      // 로딩 애니메이션 HTML 삽입
       listContainer.innerHTML = `
         <div class="loader-container">
           <div class="spinner"></div>
@@ -365,7 +366,8 @@
       try {
         const res = await fetch(GAS_URL, {
           method: "POST",
-          headers: { "Content-Type": "text/plain" },
+          mode: "cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: "getMemos" })
         });
         const result = await res.json();
@@ -449,7 +451,8 @@
       try {
         const res = await fetch(GAS_URL, {
           method: "POST",
-          headers: { "Content-Type": "text/plain" },
+          mode: "cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: "deleteMemo", payload: { id: currentSelectedMemo.id } })
         });
         const result = await res.json();
