@@ -15,7 +15,7 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; min-height: 100vh; padding: 12px; position: relative; }
+    body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; min-height: 100vh; padding: 12px; position: relative; padding-bottom: 80px; }
 
     .container { width: 100%; max-width: 650px; margin: 0 auto; }
     .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 16px; }
@@ -40,22 +40,23 @@
 
     .hidden { display: none !important; }
 
-    /* 상단 헤더 반응형 배치 */
-    .header-bar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; padding: 4px; }
-    .header-top { display: flex; justify-content: space-between; align-items: center; }
-    .user-greeting { font-size: 13px; color: #6b7280; font-weight: 600; text-align: right; }
-    .header-actions { display: flex; gap: 8px; width: 100%; }
-    .header-actions button { flex: 1; padding: 10px 0; font-size: 13px; }
-    .logout-btn { background-color: #ef4444; } .logout-btn:hover { background-color: #dc2626; }
-    .write-btn { background-color: #10b981; } .write-btn:hover { background-color: #059669; }
+    /* 🛠️ [개선] 상단 헤더 영역 우측 정렬 완전 교정 */
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 4px; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; }
+    .header-bar h2 { margin-bottom: 0; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .user-greeting { font-size: 14px; color: #4b5563; font-weight: 600; white-space: nowrap; }
+    .logout-btn { width: auto; padding: 8px 14px; background-color: #ef4444; font-size: 13px; border-radius: 6px; }
+    .logout-btn:hover { background-color: #dc2626; }
+
+    /* 📌 [개선] 우측 하단 고정 원형 + 플로팅 버튼 스타일 (FAB) */
+    .fab-btn { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background-color: #10b981; color: white; border: none; font-size: 28px; font-weight: 300; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4); cursor: pointer; transition: transform 0.2s, background-color 0.2s; z-index: 900; }
+    .fab-btn:hover { background-color: #059669; transform: scale(1.05); }
+    .fab-btn:active { transform: scale(0.95); }
 
     /* 반응형 그리드 */
     .memo-grid { display: grid; grid-template-columns: 1fr; gap: 12px; width: 100%; }
     @media (min-width: 480px) {
       .memo-grid { grid-template-columns: repeat(2, 1fr); }
-      .header-bar { flex-direction: row; justify-content: space-between; align-items: center; }
-      .header-actions { width: auto; }
-      .header-actions button { flex: none; padding: 8px 14px; }
     }
     
     .memo-card { background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border-color); overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; }
@@ -77,15 +78,17 @@
     .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, 0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* 모달 */
+    /* 모달 베이스 */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; opacity: 0; transition: opacity 0.2s ease; }
     .modal.active { display: flex !important; opacity: 1; }
     
     .modal-content { background: #fff; width: 100%; max-width: 480px; border-radius: 16px; position: relative; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); transform: scale(0.85); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
     .modal.active .modal-content { transform: scale(1); }
     
-    .modal-header { padding: 18px 20px 10px 20px; position: relative; padding-right: 44px; border-bottom: 1px solid #f3f4f6; }
-    .modal-close { position: absolute; top: 14px; right: 16px; font-size: 26px; border: none; background: none; cursor: pointer; color: #9ca3af; line-height: 1; z-index: 1010; padding: 4px; }
+    /* 🛠️ [개선] 헤더 플렉스 제어를 통해 우측 상단 X 닫기 버튼 배치 구조 안정화 */
+    .modal-header { padding: 18px 20px 14px 20px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #f3f4f6; gap: 16px; }
+    .modal-header-title-box { flex-grow: 1; }
+    .modal-close { font-size: 28px; border: none; background: none; cursor: pointer; color: #9ca3af; line-height: 0.8; padding: 2px 6px; transition: color 0.2s; }
     .modal-close:hover { color: #1f2937; }
 
     .modal-scroll-area { padding: 16px 20px 20px 20px; overflow-y: auto; flex-grow: 1; }
@@ -102,7 +105,7 @@
 </head>
 <body>
 
-  <div class="version-badge">v1.8.0</div>
+  <div class="version-badge">v1.9.0</div>
 
   <div class="container">
     <!-- 1. 로그인 섹션 -->
@@ -141,13 +144,11 @@
 
     <!-- 3. 메모장 메인 화면 -->
     <div id="memo-section" class="hidden">
+      <!-- 헤더 개편: 우측에 유저이름과 로그아웃 배치 -->
       <div class="header-bar">
-        <div class="header-top">
-          <h2>나만의 메모장</h2>
+        <h2>나만의 메모장</h2>
+        <div class="header-right">
           <div id="user-display" class="user-greeting"></div>
-        </div>
-        <div class="header-actions">
-          <button class="write-btn" onclick="openModal('write-modal')">+ 작성하기</button>
           <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
         </div>
       </div>
@@ -157,12 +158,17 @@
     </div>
   </div>
 
+  <!-- 📌 [개선] 우측 하단 고정 플로팅 작성이 버튼 (+) -->
+  <button id="fab-write-btn" class="fab-btn hidden" onclick="openModal('write-modal')">+</button>
+
   <!-- 4. 새 메모 작성 전용 팝업 창 모달 -->
   <div id="write-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
+        <div class="modal-header-title-box">
+          <h2 style="font-size: 18px; color: #10b981;">새 메모 작성</h2>
+        </div>
         <button class="modal-close" onclick="closeModal('write-modal')">×</button>
-        <h2 style="font-size: 18px; color: #10b981;">새 메모 작성</h2>
       </div>
       <div class="modal-scroll-area">
         <div class="input-group">
@@ -190,12 +196,14 @@
   <div id="detail-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <button class="modal-close" onclick="closeModal('detail-modal')">×</button>
-        <h2 id="modal-title" style="word-break: break-all; font-size: 20px; display: flex; align-items: center; gap: 8px;">제목</h2>
-        <div id="modal-detail-meta" style="font-size:12px; color:#9ca3af; margin-top:4px;">
-          <span id="modal-writer" style="font-weight:bold; color:#4b5563; margin-right:8px;">작성자</span>
-          <span id="modal-date">날짜</span>
+        <div class="modal-header-title-box">
+          <h2 id="modal-title" style="word-break: break-all; font-size: 20px; display: flex; align-items: center; gap: 8px;">제목</h2>
+          <div id="modal-detail-meta" style="font-size:12px; color:#9ca3af; margin-top:6px;">
+            <span id="modal-writer" style="font-weight:bold; color:#4b5563; margin-right:8px;">작성자</span>
+            <span id="modal-date">날짜</span>
+          </div>
         </div>
+        <button class="modal-close" onclick="closeModal('detail-modal')">×</button>
       </div>
       <div class="modal-scroll-area">
         <img id="modal-img" class="modal-img hidden" src="" alt="첨부 이미지">
@@ -213,8 +221,10 @@
   <div id="edit-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
+        <div class="modal-header-title-box">
+          <h2 style="font-size: 18px; color: #f59e0b;">메모 수정하기</h2>
+        </div>
         <button class="modal-close" onclick="closeModal('edit-modal')">×</button>
-        <h2 style="font-size: 18px; color: #f59e0b;">메모 수정하기</h2>
       </div>
       <div class="modal-scroll-area">
         <input type="hidden" id="edit-memo-id">
@@ -240,8 +250,7 @@
   </div>
 
   <script>
-    // ⚠️ 본인의 주소를 매핑해 주세요.
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbx9y8_hmqxjAt_Wgq1Bgk-XK_7A80t5x6m5FonnaH6bavGetAtZogOn5AWfD5cdhJz6/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwOgQzXPUmprYuGh8I8BREYYUXc4Oxr2G9I2N5iULiL1uQcxHzFv6itRUoL7dk_b6OB/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
     let cachedMemos = [];
@@ -309,7 +318,6 @@
       }
     }
 
-    // 로그인 진행 시 백엔드로부터 관리자 유무(isAdmin) 데이터를 전달받아 세션스토리지에 저장
     async function handleLogin() {
       const id = document.getElementById("login-id").value;
       const password = document.getElementById("login-pw").value;
@@ -325,7 +333,7 @@
         if (result.success) {
           sessionStorage.setItem("isLoggedIn", "true");
           sessionStorage.setItem("loginUserId", result.userId); 
-          sessionStorage.setItem("isAdmin", result.isAdmin ? "true" : "false"); // 관리자 권한 기록
+          sessionStorage.setItem("isAdmin", result.isAdmin ? "true" : "false"); 
           showMemoSection();
         } else {
           alert(result.message);
@@ -346,17 +354,18 @@
       document.getElementById("login-section").classList.remove("hidden");
       document.getElementById("signup-section").classList.add("hidden");
       document.getElementById("memo-section").classList.add("hidden");
+      document.getElementById("fab-write-btn").classList.add("hidden"); // 플로팅버튼 숨김
     }
 
     function showMemoSection() {
       document.getElementById("login-section").classList.add("hidden");
       document.getElementById("signup-section").classList.add("hidden");
       document.getElementById("memo-section").classList.remove("hidden");
+      document.getElementById("fab-write-btn").classList.remove("hidden"); // 플로팅버튼 표출
       
       const userId = sessionStorage.getItem("loginUserId") || "사용자";
       const isAdmin = sessionStorage.getItem("isAdmin") === "true";
       
-      // 관리자 로그인 시 이름 옆에 라벨 뱃지 표출
       document.getElementById("user-display").innerText = isAdmin ? `${userId}님 (관리자)` : `${userId}님`;
       
       loadMemos();
@@ -412,6 +421,9 @@
       try {
         const result = await callBackend("addMemo", { title, content, imageUrl, writer: currentWriter, isPrivate: isPrivate });
         if (result.success) {
+          document.getElementById("memo-title").value = "";
+          document.getElementById("memo-content").value = "";
+          document.getElementById("memo-image").value = "";
           document.getElementById("memo-private").checked = false; 
           closeModal("write-modal");
           loadMemos();
@@ -426,7 +438,6 @@
       }
     }
 
-    // 수정 완료 핸들러 (현재 유저의 마스터 권한 유무까지 패키징하여 전송)
     async function handleUpdateMemo() {
       const editId = document.getElementById("edit-memo-id").value;
       const title = document.getElementById("edit-memo-title").value;
@@ -475,7 +486,6 @@
       }
     }
 
-    // 목록 불러올 때 관리자 여부 플래그를 넘겨 비밀 목록까지 긁어오도록 가이드 변경
     async function loadMemos() {
       const listContainer = document.getElementById("memo-list");
       const currentUser = sessionStorage.getItem("loginUserId") || "";
@@ -534,11 +544,10 @@
       }
     }
 
-    // 상세 내용 바인딩 + 관리자 상시 제어 개방 허용 분기 추가
     function openDetailModal(index) {
       currentSelectedMemo = cachedMemos[index];
       const currentUser = sessionStorage.getItem("loginUserId");
-      const isAdmin = sessionStorage.getItem("isAdmin") === "true"; // 마스터 등급 검증
+      const isAdmin = sessionStorage.getItem("isAdmin") === "true"; 
       
       let privateBadgeHTML = currentSelectedMemo.isPrivate ? `<span class="private-badge" style="font-size:12px; padding:3px 6px; vertical-align:middle;">숨김</span> ` : "";
       document.getElementById("modal-title").innerHTML = `${privateBadgeHTML}${escapeHtml(currentSelectedMemo.title)}`;
@@ -558,7 +567,6 @@
       }
       
       const actionButtons = document.getElementById("modal-action-buttons");
-      // 🔐 [관리자 마스터 키] 내가 작성자거나, 또는 내 계정이 관리자 권한자라면 무조건 편집 패널 노출!
       if (String(currentUser).trim() === String(currentSelectedMemo.writer).trim() || isAdmin) {
         actionButtons.classList.remove("hidden");
       } else {
@@ -581,15 +589,6 @@
       openModal("edit-modal");
     }
 
-    function closeModal(modalId) {
-      const targetModal = document.getElementById(modalId);
-      targetModal.classList.remove("active");
-      setTimeout(() => {
-        targetModal.style.display = "none"; 
-      }, 200);
-    }
-
-    // 메모 삭제 요청 (관리자 유무 파라미터 묶어서 전송)
     async function deleteMemo() {
       if(!currentSelectedMemo) return;
       if(!confirm("이 메모를 정말 삭제하시겠습니까?")) return;
