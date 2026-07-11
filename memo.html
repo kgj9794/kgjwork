@@ -77,16 +77,21 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     
+    /* 🛠️ 전체 화면 절대 고정 (불필요한 전체 스크롤 완전 제거) */
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    
     body { 
       background: var(--bg-gradient);
       color: var(--text-color); 
       display: flex; 
       justify-content: center; 
       align-items: center; 
-      min-height: 100vh; 
-      padding: 16px; 
-      position: relative; 
-      overflow-x: hidden;
+      padding: 0; 
+      position: relative;
       transition: background 0.3s ease, color 0.3s ease;
     }
 
@@ -96,7 +101,18 @@
     body::before { top: -60px; left: -60px; background: var(--bg-blob-1); }
     body::after { bottom: -60px; right: -60px; background: var(--bg-blob-2); }
 
-    .container { width: 100%; max-width: 900px; margin: 0 auto; z-index: 10; position: relative; min-height: 400px; }
+    /* 컨테이너 규격 반응형 고정 아키텍처 */
+    .container { 
+      width: 100%; 
+      max-width: 900px; 
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 10; 
+      position: relative; 
+    }
     
     .card { 
       background: var(--card-glass); 
@@ -110,14 +126,13 @@
     }
 
     #login-section, #signup-section {
+      width: 100%;
       max-width: 420px;
-      margin: 0 auto;
     }
 
-    /* 🎬 비행 애니메이션 트랜지션 클래스 */
+    /* 🎬 패널 비행 트랜지션 인터페이스 구조 */
     .view-panel {
       position: relative;
-      width: 100%;
       transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.5s ease;
     }
     .view-panel.hidden {
@@ -129,13 +144,20 @@
       opacity: 0;
     }
     .view-panel.prepare-up {
-      display: block !important;
+      display: flex !important;
+      flex-direction: column;
       transform: translateY(100vh);
       opacity: 0;
+      width: 100%;
+      height: 100%;
     }
     .view-panel.active-main {
       transform: translateY(0);
       opacity: 1;
+      width: 100%;
+      height: 100%;
+      display: flex !important;
+      flex-direction: column;
     }
     
     h2 { margin-bottom: 18px; color: var(--primary-color); font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
@@ -190,7 +212,6 @@
     button:active { transform: translateY(1px); }
     button:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
 
-    /* 🛠️ 서브 버튼 (계정 만들기, 뒤로 가기) 디자인 축소 및 깔끔화 */
     .sub-btn { 
       width: auto;
       margin: 12px auto 0 auto;
@@ -201,19 +222,18 @@
       font-size: 12px; 
       border-radius: 8px;
       box-shadow: none;
+      display: block;
     }
     .sub-btn:hover { background: rgba(255, 255, 255, 0.25); color: var(--text-color); box-shadow: none; }
 
-    /* 상단 헤더 바 */
+    /* 상단 메뉴바 고정 배치 */
     .header-bar { 
-      position: sticky;
-      top: 12px;
-      z-index: 800;
+      flex-shrink: 0;
       display: flex; 
       justify-content: space-between; 
       align-items: center; 
-      margin-bottom: 24px; 
-      padding: 12px 20px; 
+      margin-bottom: 16px; 
+      padding: 14px 20px; 
       background: var(--header-bg);
       backdrop-filter: blur(25px) saturate(180%);
       -webkit-backdrop-filter: blur(25px) saturate(180%);
@@ -234,12 +254,20 @@
     .logout-btn { width: auto; padding: 8px 12px; background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); font-size: 12px; border-radius: 8px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
     .logout-btn:hover { opacity: 0.9; box-shadow: 0 6px 14px rgba(239, 68, 68, 0.35); }
 
-    /* FAB 플로팅 작성 버튼 */
+    /* 플로팅 버튼 */
     .fab-btn { position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; border: none; font-size: 32px; font-weight: 300; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35); cursor: pointer; transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 900; }
     .fab-btn:hover { box-shadow: 0 10px 24px rgba(16, 185, 129, 0.5); transform: scale(1.08) rotate(90deg); }
     .fab-btn:active { transform: scale(0.95); }
 
-    /* 카드 그리드 */
+    /* 🛠️ [개선] 메모 리스트 컨테이너 독립 스크롤 아키텍처 연동 */
+    .memo-list-wrapper {
+      flex-grow: 1;
+      overflow-y: auto;
+      width: 100%;
+      padding-bottom: 80px; /* FAB 여백 확보 */
+      -webkit-overflow-scrolling: touch;
+    }
+
     .memo-grid { display: grid; grid-template-columns: 1fr; gap: 18px; width: 100%; }
     @media (min-width: 600px) { .memo-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (min-width: 900px) { .memo-grid { grid-template-columns: repeat(3, 1fr); } }
@@ -274,13 +302,13 @@
 
     .private-badge { background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: bold; display: inline-block; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2); }
 
-    /* 로딩 로더 */
+    /* 로딩 기어 */
     .loader-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0; gap: 12px; }
     .spinner { width: 36px; height: 36px; border: 4px solid rgba(99, 102, 241, 0.1); border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
     .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, 0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* 모달 팝업 */
+    /* 리퀴드 글래스 모달 */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; opacity: 0; transition: opacity 0.25s ease; }
     .modal.active { display: flex !important; opacity: 1; }
     
@@ -306,6 +334,7 @@
     .modal-header { padding: 20px 24px 14px 24px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--card-border); gap: 16px; }
     .modal-header-title-box { flex-grow: 1; }
     
+    /* 🛠️ [개선 완벽 적용] 고정 정사각형 라인 기반 동기화 닫기 버튼 */
     .modal-close { 
       width: 32px !important; 
       height: 32px !important; 
@@ -342,9 +371,10 @@
 </head>
 <body>
 
-  <div class="version-badge">v2.2.1</div>
+  <div class="version-badge">v2.3.0</div>
 
   <div class="container">
+    <!-- 1. 로그인 패널 -->
     <div id="login-section" class="view-panel card">
       <h2>메모장 로그인</h2>
       <div class="input-group">
@@ -359,6 +389,7 @@
       <button class="sub-btn" onclick="toggleAuthMode(true)">계정 만들기</button>
     </div>
 
+    <!-- 2. 회원가입 패널 -->
     <div id="signup-section" class="view-panel card hidden">
       <h2>계정 생성</h2>
       <div class="input-group">
@@ -377,6 +408,7 @@
       <button class="sub-btn" onclick="toggleAuthMode(false)">뒤로 가기</button>
     </div>
 
+    <!-- 3. 메모장 메인 목록 패널 (고정 헤더 + 하단 전용 독립 스크롤 스켈레톤 구현) -->
     <div id="memo-section" class="view-panel hidden">
       <div class="header-bar">
         <h2>나만의 메모장</h2>
@@ -386,12 +418,18 @@
           <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
         </div>
       </div>
-      <div id="memo-list" class="memo-grid"></div>
+      
+      <!-- 🛠️ 이 스크롤 래퍼 내부에서만 리스트 스크롤이 작동하여 화면 밖으로 넘치지 않습니다 -->
+      <div class="memo-list-wrapper">
+        <div id="memo-list" class="memo-grid"></div>
+      </div>
     </div>
   </div>
 
+  <!-- 🛠️ 로그인 화면에서는 hidden 클래스 부여로 원천 숨김 차단 처리 완료 -->
   <button id="fab-write-btn" class="fab-btn hidden" onclick="openModal('write-modal')">+</button>
 
+  <!-- 4. 작성 모달 -->
   <div id="write-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -422,6 +460,7 @@
     </div>
   </div>
 
+  <!-- 5. 상세 모달 -->
   <div id="detail-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -446,6 +485,7 @@
     </div>
   </div>
 
+  <!-- 6. 수정 모달 -->
   <div id="edit-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -478,7 +518,6 @@
   </div>
 
   <script>
-    // 💡 [원복 완료] 안정적인 doGet(GET) 방식을 구동할 앱스크립트 URL
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyHXd5ygKPdD6XwicfAt7TNqAF9vV53XvmVNgosRrWkMfd5Spmq2PtaH7fgwh5ngwIO/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
@@ -535,7 +574,6 @@
       }
     }
 
-    // 💡 [원복 완료] 백엔드 연동 전용 GET JSONP / URL 파라미터 호출 함수
     async function callBackend(action, payload) {
       const jsonString = JSON.stringify({ action, payload });
       const targetUrl = `${GAS_URL}?data=${encodeURIComponent(jsonString)}`;
@@ -590,7 +628,6 @@
           sessionStorage.setItem("loginUserId", result.userId); 
           sessionStorage.setItem("isAdmin", result.isAdmin === true ? "true" : "false"); 
           
-          // 🎬 시네마틱 비행 애니메이션 연출
           const loginSec = document.getElementById("login-section");
           const memoSec = document.getElementById("memo-section");
           
@@ -602,7 +639,7 @@
             memoSec.classList.remove("hidden");
             setTimeout(() => {
               memoSec.classList.add("active-main");
-              document.getElementById("fab-write-btn").classList.remove("hidden");
+              document.getElementById("fab-write-btn").classList.remove("hidden"); // 🛠️ 로그인 완료 시점에만 + 노출
             }, 50);
             showMemoSection();
           }, 450);
@@ -619,6 +656,7 @@
       }
     }
 
+    // 🛠️ 로그아웃 시 플로팅 버튼 은닉 및 비행 애니메이션 타겟 완전 리셋
     function handleLogout() {
       sessionStorage.removeItem("isLoggedIn");
       sessionStorage.removeItem("loginUserId");
@@ -627,10 +665,11 @@
       const loginSec = document.getElementById("login-section");
       const memoSec = document.getElementById("memo-section");
       
-      memoSec.classList.remove("active-main");
+      memoSec.classList.remove("active-main", "prepare-up");
       memoSec.classList.add("hidden");
+      
       loginSec.classList.remove("fly-up", "hidden");
-      document.getElementById("fab-write-btn").classList.add("hidden"); 
+      document.getElementById("fab-write-btn").classList.add("hidden"); // 🛠️ 로그아웃 즉시 + 완벽 제거
     }
 
     function showMemoSection() {
@@ -856,6 +895,14 @@
       document.getElementById("edit-memo-private").checked = currentSelectedMemo.isPrivate; 
 
       openModal("edit-modal");
+    }
+
+    function closeModal(modalId) {
+      const targetModal = document.getElementById(modalId);
+      targetModal.classList.remove("active");
+      setTimeout(() => {
+        targetModal.style.display = "none"; 
+      }, 200);
     }
 
     async function deleteMemo() {
