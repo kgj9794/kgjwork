@@ -34,8 +34,10 @@
 
     /* Memo Section Header */
     .hidden { display: none !important; }
-    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .header-actions { display: flex; gap: 8px; }
+    .header-bar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; }
+    .user-greeting { font-size: 14px; color: #4b5563; font-weight: 600; text-align: right; }
+    .header-actions { display: flex; gap: 8px; margin-top: 4px; justify-content: flex-end; }
     
     .logout-btn { width: auto; padding: 8px 14px; background-color: #ef4444; font-size: 13px; }
     .logout-btn:hover { background-color: #dc2626; }
@@ -53,12 +55,17 @@
     .memo-preview { font-size: 13px; color: #6b7280; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; line-height: 1.4; }
     .memo-date { font-size: 11px; color: #9ca3af; text-align: right; }
 
-    /* Modal Styling */
+    /* Modal Styling (닫기 버튼 상단 고정 적용) */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-    .modal-content { background: #fff; width: 100%; max-width: 500px; border-radius: 12px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto; }
-    .modal-close { position: absolute; top: 16px; right: 16px; font-size: 24px; border: none; background: none; cursor: pointer; color: #9ca3af; }
+    .modal-content { background: #fff; width: 100%; max-width: 500px; border-radius: 12px; position: relative; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+    
+    .modal-header { padding: 20px 24px 10px 24px; position: relative; padding-right: 50px; } /* X 버튼 자리를 위해 패딩 추가 */
+    .modal-close { position: absolute; top: 16px; right: 20px; font-size: 28px; border: none; background: none; cursor: pointer; color: #9ca3af; line-height: 1; z-index: 1010; }
+    .modal-close:hover { color: #1f2937; }
+
+    .modal-scroll-area { padding: 0 24px 24px 24px; overflow-y: auto; flex-grow: 1; }
     .modal-img { width: 100%; max-height: 260px; object-fit: contain; border-radius: 6px; margin: 12px 0; background: #fafafa; }
-    .modal-body { font-size: 15px; color: #374151; white-space: pre-wrap; line-height: 1.6; margin-bottom: 20px; }
+    .modal-body { font-size: 15px; color: #374151; white-space: pre-wrap; line-height: 1.6; margin-bottom: 20px; word-break: break-all; }
     
     .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
     .edit-btn { background-color: #f59e0b; } .edit-btn:hover { background-color: #d97706; }
@@ -73,11 +80,11 @@
       <h2>🔒 메모장 로그인</h2>
       <div class="input-group">
         <label>아이디</label>
-        <input type="text" id="login-id" placeholder="아이디 입력">
+        <input type="text" id="login-id" placeholder="아이디 입력" onkeydown="checkEnter(event, handleLogin)">
       </div>
       <div class="input-group">
         <label>비밀번호</label>
-        <input type="password" id="login-pw" placeholder="비밀번호 입력">
+        <input type="password" id="login-pw" placeholder="비밀번호 입력" onkeydown="checkEnter(event, handleLogin)">
       </div>
       <button onclick="handleLogin()">입장하기</button>
       <button class="sub-btn" onclick="toggleAuthMode(true)">계정 만들기 (회원가입)</button>
@@ -105,17 +112,20 @@
     <!-- 3. 메모장 메인 화면 -->
     <div id="memo-section" class="hidden">
       <div class="header-bar">
-        <h2>📝 나만의 메모장</h2>
+        <div class="header-top">
+          <h2>📝 나만의 메모장</h2>
+          <div id="user-display" class="user-greeting"></div>
+        </div>
         <div class="header-actions">
           <button class="write-btn" id="toggle-write-btn" onclick="toggleMemoForm()">+ 작성하기</button>
           <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
         </div>
       </div>
 
-      <!-- 메모 작성/수정 폼 (기본 숨김) -->
+      <!-- 메모 작성/수정 폼 -->
       <div id="memo-form-card" class="card hidden">
         <h3 id="form-title" style="margin-bottom:12px; color:var(--primary-color);">새 메모 작성</h3>
-        <input type="hidden" id="edit-memo-id"> <!-- 수정 모드용 히든 태그 -->
+        <input type="hidden" id="edit-memo-id">
         <div class="input-group">
           <label>제목</label>
           <input type="text" id="memo-title" placeholder="제목을 입력하세요">
@@ -131,23 +141,30 @@
         <button id="save-btn" onclick="handleSaveMemo()">메모 저장하기</button>
       </div>
 
-      <!-- 메모 목록 (대략적 바둑판 배열) -->
+      <!-- 메모 목록 -->
       <div id="memo-list" class="memo-grid"></div>
     </div>
   </div>
 
-  <!-- 4. 상세 보기 팝업 모달 -->
+  <!-- 4. 상세 보기 팝업 모달 (X 버튼 상단 고정 구조 변경) -->
   <div id="detail-modal" class="modal hidden">
     <div class="modal-content">
-      <button class="modal-close" onclick="closeModal()">×</button>
-      <h2 id="modal-title" style="word-break: break-all;">제목</h2>
-      <div id="modal-date" style="font-size:12px; color:#9ca3af; margin-bottom:10px;">날짜</div>
-      <img id="modal-img" class="modal-img hidden" src="" alt="첨부 이미지">
-      <div id="modal-body" class="modal-body">내용</div>
+      <!-- 헤더 영역 (고정) -->
+      <div class="modal-header">
+        <button class="modal-close" onclick="closeModal()">×</button>
+        <h2 id="modal-title" style="word-break: break-all; font-size: 22px;">제목</h2>
+        <div id="modal-date" style="font-size:12px; color:#9ca3af; margin-top:4px;">날짜</div>
+      </div>
       
-      <div class="modal-actions">
-        <button class="edit-btn" onclick="openEditMode()">수정</button>
-        <button class="del-btn" onclick="deleteMemo()">삭제</button>
+      <!-- 스크롤 바디 영역 -->
+      <div class="modal-scroll-area">
+        <img id="modal-img" class="modal-img hidden" src="" alt="첨부 이미지">
+        <div id="modal-body" class="modal-body">내용</div>
+        
+        <div class="modal-actions">
+          <button class="edit-btn" onclick="openEditMode()">수정</button>
+          <button class="del-btn" onclick="deleteMemo()">삭제</button>
+        </div>
       </div>
     </div>
   </div>
@@ -156,14 +173,22 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxb7z7VSfhqvkNocfPCG88W2NABz2gI53Uh1V6gp3USCwcSnRtac_AlQRzRhMAe4USsBw/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
-    let cachedMemos = []; // 전체 데이터 캐싱용 배열
-    let currentSelectedMemo = null; // 현재 팝업에 떠있는 메모 객체
+    let cachedMemos = [];
+    let currentSelectedMemo = null;
 
     window.onload = () => {
       if (sessionStorage.getItem("isLoggedIn") === "true") {
         showMemoSection();
       }
     };
+
+    // 엔터키 입력 감지 함수
+    function checkEnter(event, callback) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        callback();
+      }
+    }
 
     function toggleAuthMode(isSignup) {
       if (isSignup) {
@@ -175,14 +200,13 @@
       }
     }
 
-    // 회원가입 (비밀번호 두번 검증 추가)
     async function handleSignup() {
       const id = document.getElementById("signup-id").value;
       const password = document.getElementById("signup-pw").value;
       const passwordConfirm = document.getElementById("signup-pw-confirm").value;
 
       if (!id || !password || !passwordConfirm) return alert("모든 빈칸을 채워주세요.");
-      if (password !== passwordConfirm) return alert("비밀번호 재확인이 일치하지 않습니다. 다시 확인해 주세요.");
+      if (password !== passwordConfirm) return alert("비밀번호 재확인이 일치하지 않습니다.");
 
       try {
         const res = await fetch(GAS_URL, {
@@ -217,6 +241,7 @@
 
         if (result.success) {
           sessionStorage.setItem("isLoggedIn", "true");
+          sessionStorage.setItem("loginUserId", id); // 로그인한 ID 저장
           showMemoSection();
         } else {
           alert(result.message);
@@ -228,6 +253,7 @@
 
     function handleLogout() {
       sessionStorage.removeItem("isLoggedIn");
+      sessionStorage.removeItem("loginUserId");
       document.getElementById("login-section").classList.remove("hidden");
       document.getElementById("signup-section").classList.add("hidden");
       document.getElementById("memo-section").classList.add("hidden");
@@ -237,10 +263,14 @@
       document.getElementById("login-section").classList.add("hidden");
       document.getElementById("signup-section").classList.add("hidden");
       document.getElementById("memo-section").classList.remove("hidden");
+      
+      // 사용자 이름 표출 로직 추가
+      const userId = sessionStorage.getItem("loginUserId") || "사용자";
+      document.getElementById("user-display").innerText = `👤 ${userId}님 환영합니다!`;
+      
       loadMemos();
     }
 
-    // 작성 폼 켜고 끄기 및 초기화
     function toggleMemoForm() {
       const formCard = document.getElementById("memo-form-card");
       document.getElementById("form-title").innerText = "새 메모 작성";
@@ -257,7 +287,6 @@
       }
     }
 
-    // 메모 작성 및 수정 동시 처리
     async function handleSaveMemo() {
       const title = document.getElementById("memo-title").value;
       const content = document.getElementById("memo-content").value;
@@ -270,7 +299,7 @@
       saveBtn.innerText = "저장 중...";
       saveBtn.disabled = true;
 
-      let imageUrl = editId ? undefined : ""; // 수정 시 선택 안 하면 기존 이미지 유지하려고 undefined 세팅
+      let imageUrl = editId ? undefined : "";
 
       if (imageFile) {
         const formData = new FormData();
@@ -314,7 +343,6 @@
       }
     }
 
-    // 리스트 호출 및 캐싱 데이터 업데이트
     async function loadMemos() {
       const listContainer = document.getElementById("memo-list");
       listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>메모를 불러오는 중...</p>";
@@ -328,7 +356,7 @@
 
         if (result.success) {
           listContainer.innerHTML = "";
-          cachedMemos = result.memos; // 글로벌 변수에 저장
+          cachedMemos = result.memos;
 
           if (cachedMemos.length === 0) {
             listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align:center; color:#9ca3af;'>등록된 메모가 없습니다.</p>";
@@ -340,7 +368,6 @@
             card.className = "memo-card";
             card.onclick = () => openModal(index);
             
-            // 썸네일 이미지 처리 (없으면 회색 박스 생략하고 빈 공간 레이아웃 보완)
             let imgHTML = memo.imageUrl ? `<img src="${memo.imageUrl}" class="memo-thumb">` : `<div class="memo-thumb" style="height:40px; background:#e0e7ff;"></div>`;
             
             card.innerHTML = `
@@ -361,7 +388,6 @@
       }
     }
 
-    // 디테일 모달 팝업 열기
     function openModal(index) {
       currentSelectedMemo = cachedMemos[index];
       
@@ -378,13 +404,13 @@
       }
       
       document.getElementById("detail-modal").classList.remove("hidden");
+      document.querySelector(".modal-scroll-area").scrollTop = 0; // 모달 열릴 때 스크롤 초기화
     }
 
     function closeModal() {
       document.getElementById("detail-modal").classList.add("hidden");
     }
 
-    // 모달 내에서 수정 버튼 누를 시 상단 폼 세팅 및 스크롤 상단 고정
     function openEditMode() {
       if(!currentSelectedMemo) return;
       closeModal();
@@ -400,7 +426,6 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // 모달 내에서 삭제 동작 진행
     async function deleteMemo() {
       if(!currentSelectedMemo) return;
       if(!confirm("이 메모를 정말 삭제하시겠습니까?")) return;
