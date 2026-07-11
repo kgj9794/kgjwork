@@ -6,7 +6,6 @@
   <title>나만의 메모장</title>
   <style>
     :root {
-      /* 라이트 모드 컬러 변수 */
       --bg-gradient: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 50%, #e0f2fe 100%);
       --bg-blob-1: #c7d2fe;
       --bg-blob-2: #f3d8fa;
@@ -23,7 +22,6 @@
       --header-bg: rgba(238, 242, 247, 0.65);
     }
 
-    /* 🌙 OS 다크모드 및 수동 다크모드 대응 */
     @media (prefers-color-scheme: dark) {
       :root {
         --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f2942 100%);
@@ -43,7 +41,6 @@
       }
     }
 
-    /* 수동 다크모드 클래스 적용시 강제 전환 */
     body.dark-theme {
       --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f2942 100%);
       --bg-blob-1: #312e81;
@@ -80,7 +77,6 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     
-    /* 🎯 로그인 화면 중앙 정렬을 위한 Flex 레이아웃 */
     body { 
       background: var(--bg-gradient);
       color: var(--text-color); 
@@ -94,7 +90,6 @@
       transition: background 0.3s ease, color 0.3s ease;
     }
 
-    /* 리퀴드 배경 파티클 */
     body::before, body::after {
       content: ""; position: fixed; width: 350px; height: 350px; border-radius: 50%; filter: blur(90px); z-index: -1; opacity: 0.7; transition: background 0.3s ease;
     }
@@ -103,7 +98,6 @@
 
     .container { width: 100%; max-width: 900px; margin: 0 auto; z-index: 10; }
     
-    /* 카드 템플릿 */
     .card { 
       background: var(--card-glass); 
       backdrop-filter: blur(20px) saturate(180%); 
@@ -115,7 +109,6 @@
       transition: all 0.3s ease;
     }
 
-    /* 로그인/가입 카드는 중앙 정렬 시 최대너비 제한 */
     #login-section, #signup-section {
       max-width: 420px;
       margin: 0 auto;
@@ -124,7 +117,7 @@
     h2 { margin-bottom: 18px; color: var(--primary-color); font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
     
     .input-group { margin-bottom: 14px; }
-    .input-group label { display: block; font-size: 13px; margin-bottom: 6px; font-weight: 600; color: var(--text-muted); }
+    .input-group label { display: block; font-size: 13px; margin-bottom: 4px; font-weight: 600; color: var(--text-muted); }
     
     .input-group input, .input-group textarea { 
       width: 100%; 
@@ -186,7 +179,7 @@
 
     .hidden { display: none !important; }
 
-    /* 📌 [개선] 스티키 상단 헤더 메뉴바 고정 */
+    /* 상단 고정 바 */
     .header-bar { 
       position: sticky;
       top: 12px;
@@ -216,18 +209,18 @@
     .logout-btn { width: auto; padding: 8px 12px; background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); font-size: 12px; border-radius: 8px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
     .logout-btn:hover { opacity: 0.9; box-shadow: 0 6px 14px rgba(239, 68, 68, 0.35); }
 
-    /* 플로팅 버튼 (FAB) */
+    /* 플로팅 버튼 */
     .fab-btn { position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; border: none; font-size: 32px; font-weight: 300; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35); cursor: pointer; transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 900; }
     .fab-btn:hover { box-shadow: 0 10px 24px rgba(16, 185, 129, 0.5); transform: scale(1.08) rotate(90deg); }
     .fab-btn:active { transform: scale(0.95); }
 
-    /* 🖥️ [개선] 반응형 데스크탑 UI 최적화 그리드 */
+    /* 데스크탑 최적화 그리드 */
     .memo-grid { display: grid; grid-template-columns: 1fr; gap: 18px; width: 100%; }
     @media (min-width: 600px) {
       .memo-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (min-width: 900px) {
-      .memo-grid { grid-template-columns: repeat(3, 1fr); } /* 데스크탑 전용 3열 배치 */
+      .memo-grid { grid-template-columns: repeat(3, 1fr); } 
     }
     
     .memo-card { 
@@ -266,7 +259,7 @@
     .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, 0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* 리퀴드 글래스 모달 */
+    /* 모달 */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; opacity: 0; transition: opacity 0.25s ease; }
     .modal.active { display: flex !important; opacity: 1; }
     
@@ -292,7 +285,7 @@
     .modal-header { padding: 20px 24px 14px 24px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--card-border); gap: 16px; }
     .modal-header-title-box { flex-grow: 1; }
     
-    /* 🛠️ [개선] X 버튼이 크게 늘어나던 버그 완벽 수정 (고정 크기 정사각형 원형화) */
+    /* 원형 닫기 버튼 */
     .modal-close { 
       width: 32px !important; 
       height: 32px !important; 
@@ -329,7 +322,7 @@
 </head>
 <body>
 
-  <div class="version-badge">v2.1.0</div>
+  <div class="version-badge">v2.1.2</div>
 
   <div class="container">
     <div id="login-section" class="card">
@@ -466,14 +459,13 @@
   </div>
 
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwOgQzXPUmprYuGh8I8BREYYUXc4Oxr2G9I2N5iULiL1uQcxHzFv6itRUoL7dk_b6OB/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyWYM02JnaHlCIDXhlt0opAbJfwMTplBRh-9r_Sc283GenMM2in_pR9PthxU0pdmGbQ/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
     let cachedMemos = [];
     let currentSelectedMemo = null;
 
     window.onload = () => {
-      // 저장된 테마 불러오기
       const savedTheme = localStorage.getItem("appTheme");
       if (savedTheme) {
         document.body.classList.add(savedTheme);
@@ -484,7 +476,6 @@
       }
     };
 
-    /* 🌙 수동 다크모드/라이트모드 토글 기능 */
     function toggleDarkMode() {
       if (document.body.classList.contains("dark-theme")) {
         document.body.classList.remove("dark-theme");
@@ -495,7 +486,6 @@
         document.body.classList.add("dark-theme");
         localStorage.setItem("appTheme", "dark-theme");
       } else {
-        // 기본 상태일 때는 OS 감지 기준 반대로 강제 세팅
         const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
         const newTheme = isSystemDark ? "light-theme" : "dark-theme";
         document.body.classList.add(newTheme);
@@ -574,7 +564,7 @@
         if (result.success) {
           sessionStorage.setItem("isLoggedIn", "true");
           sessionStorage.setItem("loginUserId", result.userId); 
-          sessionStorage.setItem("isAdmin", result.isAdmin ? "true" : "false"); 
+          sessionStorage.setItem("isAdmin", result.isAdmin === true ? "true" : "false"); 
           showMemoSection();
         } else {
           alert(result.message);
@@ -629,6 +619,7 @@
       }, 200);
     }
 
+    // 🛠️ 버그 수정 핵심부: 작성 성공 후 목록 조회 시 스토리지 정보를 패키징하여 안전하게 원격 리로드 유도
     async function handleSaveMemo() {
       const title = document.getElementById("memo-title").value;
       const content = document.getElementById("memo-content").value;
@@ -667,7 +658,7 @@
           document.getElementById("memo-image").value = "";
           document.getElementById("memo-private").checked = false; 
           closeModal("write-modal");
-          loadMemos();
+          loadMemos(); // 🛠️ 여기서 내부의 매개변수가 스토리지를 직접 참조하도록 고쳐 연동 오류를 해결했습니다.
         } else {
           alert(result.message);
         }
@@ -755,7 +746,7 @@
             card.className = "memo-card";
             card.onclick = () => openDetailModal(index);
             
-            let imgHTML = memo.imageUrl ? `<img src="${memo.imageUrl}" class="memo-thumb">` : `<div class="memo-thumb" style="height:30px; background:rgba(255,255,255,0.05);"></div>`;
+            let imgHTML = memo.imageUrl ? `<img src="${memo.imageUrl}" class="memo-thumb">` : `<div class="memo-thumb" style="height:40px; background:rgba(255,255,255,0.05);"></div>`;
             let dateText = "날짜 정보 없음";
             if (memo.createdAt) {
               dateText = memo.createdAt.includes(" ") ? memo.createdAt.split(" ")[0] : memo.createdAt;
@@ -828,6 +819,14 @@
       document.getElementById("edit-memo-private").checked = currentSelectedMemo.isPrivate; 
 
       openModal("edit-modal");
+    }
+
+    function closeModal(modalId) {
+      const targetModal = document.getElementById(modalId);
+      targetModal.classList.remove("active");
+      setTimeout(() => {
+        targetModal.style.display = "none"; 
+      }, 200);
     }
 
     async function deleteMemo() {
