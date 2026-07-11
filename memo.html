@@ -27,7 +27,6 @@
     .input-group input:focus, .input-group textarea:focus { outline: none; border-color: var(--primary-color); background-color: #fff; }
     .input-group textarea { resize: vertical; height: 140px; }
 
-    /* 체크박스 그룹 정렬 */
     .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; cursor: pointer; }
     .checkbox-group input[type="checkbox"] { width: 18px; height: 16px; accent-color: var(--primary-color); cursor: pointer; }
     .checkbox-group label { font-size: 14px; font-weight: 600; color: #4b5563; cursor: pointer; }
@@ -70,7 +69,6 @@
     .memo-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #9ca3af; border-top: 1px dashed #f3f4f6; padding-top: 8px; }
     .memo-writer { font-weight: 600; color: #6b7280; max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    /* 숨김 전용 딱지 라벨 스타일 */
     .private-badge { background-color: #ef4444; color: white; padding: 1px 5px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block; }
 
     /* 로딩 애니메이션 */
@@ -104,7 +102,7 @@
 </head>
 <body>
 
-  <div class="version-badge">v1.7.0</div>
+  <div class="version-badge">v1.8.0</div>
 
   <div class="container">
     <!-- 1. 로그인 섹션 -->
@@ -159,7 +157,7 @@
     </div>
   </div>
 
-  <!-- 4. 새 메모 작성 전용 팝업 창 모달 (나만보기 체크박스 탑재) -->
+  <!-- 4. 새 메모 작성 전용 팝업 창 모달 -->
   <div id="write-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -211,7 +209,7 @@
     </div>
   </div>
 
-  <!-- 6. 별도의 수정 전용 팝업 모달 (나만보기 체크박스 탑재) -->
+  <!-- 6. 별도의 수정 전용 팝업 모달 -->
   <div id="edit-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -242,7 +240,8 @@
   </div>
 
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwOgQzXPUmprYuGh8I8BREYYUXc4Oxr2G9I2N5iULiL1uQcxHzFv6itRUoL7dk_b6OB/exec";
+    // ⚠️ 본인의 주소를 매핑해 주세요.
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbx9y8_hmqxjAt_Wgq1Bgk-XK_7A80t5x6m5FonnaH6bavGetAtZogOn5AWfD5cdhJz6/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
     let cachedMemos = [];
@@ -310,6 +309,7 @@
       }
     }
 
+    // 로그인 진행 시 백엔드로부터 관리자 유무(isAdmin) 데이터를 전달받아 세션스토리지에 저장
     async function handleLogin() {
       const id = document.getElementById("login-id").value;
       const password = document.getElementById("login-pw").value;
@@ -325,6 +325,7 @@
         if (result.success) {
           sessionStorage.setItem("isLoggedIn", "true");
           sessionStorage.setItem("loginUserId", result.userId); 
+          sessionStorage.setItem("isAdmin", result.isAdmin ? "true" : "false"); // 관리자 권한 기록
           showMemoSection();
         } else {
           alert(result.message);
@@ -341,6 +342,7 @@
     function handleLogout() {
       sessionStorage.removeItem("isLoggedIn");
       sessionStorage.removeItem("loginUserId");
+      sessionStorage.removeItem("isAdmin");
       document.getElementById("login-section").classList.remove("hidden");
       document.getElementById("signup-section").classList.add("hidden");
       document.getElementById("memo-section").classList.add("hidden");
@@ -352,7 +354,10 @@
       document.getElementById("memo-section").classList.remove("hidden");
       
       const userId = sessionStorage.getItem("loginUserId") || "사용자";
-      document.getElementById("user-display").innerText = `${userId}님`;
+      const isAdmin = sessionStorage.getItem("isAdmin") === "true";
+      
+      // 관리자 로그인 시 이름 옆에 라벨 뱃지 표출
+      document.getElementById("user-display").innerText = isAdmin ? `${userId}님 (관리자)` : `${userId}님`;
       
       loadMemos();
     }
@@ -374,12 +379,11 @@
       }, 200);
     }
 
-    // 새 메모 저장 (isPrivate 체크박스 값 포함)
     async function handleSaveMemo() {
       const title = document.getElementById("memo-title").value;
       const content = document.getElementById("memo-content").value;
       const imageFile = document.getElementById("memo-image").files[0];
-      const isPrivate = document.getElementById("memo-private").checked; // 체크 상태 확인
+      const isPrivate = document.getElementById("memo-private").checked; 
       const saveBtn = document.getElementById("save-btn");
       const currentWriter = sessionStorage.getItem("loginUserId");
 
@@ -408,7 +412,7 @@
       try {
         const result = await callBackend("addMemo", { title, content, imageUrl, writer: currentWriter, isPrivate: isPrivate });
         if (result.success) {
-          document.getElementById("memo-private").checked = false; // 리셋
+          document.getElementById("memo-private").checked = false; 
           closeModal("write-modal");
           loadMemos();
         } else {
@@ -422,7 +426,7 @@
       }
     }
 
-    // 메모 수정 (isPrivate 상태 전달 및 백엔드 원격 저장)
+    // 수정 완료 핸들러 (현재 유저의 마스터 권한 유무까지 패키징하여 전송)
     async function handleUpdateMemo() {
       const editId = document.getElementById("edit-memo-id").value;
       const title = document.getElementById("edit-memo-title").value;
@@ -431,6 +435,7 @@
       const isPrivate = document.getElementById("edit-memo-private").checked;
       const updateBtn = document.getElementById("update-btn");
       const currentWriter = sessionStorage.getItem("loginUserId");
+      const isAdmin = sessionStorage.getItem("isAdmin") === "true";
 
       if (!title || !content) return alert("제목과 내용을 입력해주세요.");
 
@@ -455,7 +460,7 @@
       }
 
       try {
-        const result = await callBackend("updateMemo", { id: editId, title, content, imageUrl, writer: currentWriter, isPrivate: isPrivate });
+        const result = await callBackend("updateMemo", { id: editId, title, content, imageUrl, writer: currentWriter, isPrivate: isPrivate, isAdmin: isAdmin });
         if (result.success) {
           closeModal("edit-modal");
           loadMemos();
@@ -470,10 +475,11 @@
       }
     }
 
-    // 목록 연동 (userId를 매개변수에 보내 백엔드 보안 필터 작동 유도)
+    // 목록 불러올 때 관리자 여부 플래그를 넘겨 비밀 목록까지 긁어오도록 가이드 변경
     async function loadMemos() {
       const listContainer = document.getElementById("memo-list");
       const currentUser = sessionStorage.getItem("loginUserId") || "";
+      const isAdmin = sessionStorage.getItem("isAdmin") === "true";
       
       listContainer.innerHTML = `
         <div class="loader-container">
@@ -483,7 +489,7 @@
       `;
 
       try {
-        const result = await callBackend("getMemos", { userId: currentUser });
+        const result = await callBackend("getMemos", { userId: currentUser, isAdmin: isAdmin });
         if (result.success) {
           listContainer.innerHTML = "";
           cachedMemos = result.memos;
@@ -504,8 +510,6 @@
               dateText = memo.createdAt.includes(" ") ? memo.createdAt.split(" ")[0] : memo.createdAt;
             }
             let writerText = memo.writer && memo.writer !== "undefined" ? memo.writer : "익명";
-            
-            // 나만보기 딱지 여부 분기 처리
             let privateBadgeHTML = memo.isPrivate ? `<span class="private-badge">숨김</span> ` : "";
 
             card.innerHTML = `
@@ -530,9 +534,11 @@
       }
     }
 
+    // 상세 내용 바인딩 + 관리자 상시 제어 개방 허용 분기 추가
     function openDetailModal(index) {
       currentSelectedMemo = cachedMemos[index];
       const currentUser = sessionStorage.getItem("loginUserId");
+      const isAdmin = sessionStorage.getItem("isAdmin") === "true"; // 마스터 등급 검증
       
       let privateBadgeHTML = currentSelectedMemo.isPrivate ? `<span class="private-badge" style="font-size:12px; padding:3px 6px; vertical-align:middle;">숨김</span> ` : "";
       document.getElementById("modal-title").innerHTML = `${privateBadgeHTML}${escapeHtml(currentSelectedMemo.title)}`;
@@ -552,7 +558,8 @@
       }
       
       const actionButtons = document.getElementById("modal-action-buttons");
-      if (String(currentUser).trim() === String(currentSelectedMemo.writer).trim()) {
+      // 🔐 [관리자 마스터 키] 내가 작성자거나, 또는 내 계정이 관리자 권한자라면 무조건 편집 패널 노출!
+      if (String(currentUser).trim() === String(currentSelectedMemo.writer).trim() || isAdmin) {
         actionButtons.classList.remove("hidden");
       } else {
         actionButtons.classList.add("hidden");
@@ -569,26 +576,29 @@
       document.getElementById("edit-memo-title").value = currentSelectedMemo.title;
       document.getElementById("edit-memo-content").value = currentSelectedMemo.content;
       document.getElementById("edit-memo-image").value = ""; 
-      document.getElementById("edit-memo-private").checked = currentSelectedMemo.isPrivate; // 기존 숨김 상태 로드
+      document.getElementById("edit-memo-private").checked = currentSelectedMemo.isPrivate; 
 
       openModal("edit-modal");
     }
 
     function closeModal(modalId) {
-      document.getElementById(modalId).classList.remove("active");
+      const targetModal = document.getElementById(modalId);
+      targetModal.classList.remove("active");
       setTimeout(() => {
-        document.getElementById(modalId).style.display = "none"; 
+        targetModal.style.display = "none"; 
       }, 200);
     }
 
+    // 메모 삭제 요청 (관리자 유무 파라미터 묶어서 전송)
     async function deleteMemo() {
       if(!currentSelectedMemo) return;
       if(!confirm("이 메모를 정말 삭제하시겠습니까?")) return;
 
       const currentWriter = sessionStorage.getItem("loginUserId");
+      const isAdmin = sessionStorage.getItem("isAdmin") === "true";
 
       try {
-        const result = await callBackend("deleteMemo", { id: currentSelectedMemo.id, writer: currentWriter });
+        const result = await callBackend("deleteMemo", { id: currentSelectedMemo.id, writer: currentWriter, isAdmin: isAdmin });
         alert(result.message);
         if(result.success) {
           closeModal("detail-modal");
