@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>나만의 나이트 메모장</title>
+  <title>나만의 메모장</title>
   <style>
     :root {
       --bg-color: #f4f6f8;
@@ -56,16 +56,13 @@
     .memo-preview { font-size: 13px; color: #6b7280; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; line-height: 1.4; }
     .memo-date { font-size: 11px; color: #9ca3af; text-align: right; }
 
-    /* 로딩 애니메이션 스피너 */
+    /* Loader */
     .loader-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; gap: 12px; }
     .spinner { width: 40px; height: 40px; border: 4px solid rgba(79, 70, 229, 0.1); border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
-    
-    /* 버튼 내부용 미니 스피너 */
     .btn-spinner { width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
-    
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* Modal Styling */
+    /* Modal (상세보기 및 수정 팝업) */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
     .modal-content { background: #fff; width: 100%; max-width: 500px; border-radius: 12px; position: relative; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
     
@@ -81,19 +78,17 @@
     .edit-btn { background-color: #f59e0b; } .edit-btn:hover { background-color: #d97706; }
     .del-btn { background-color: #ef4444; } .del-btn:hover { background-color: #dc2626; }
 
-    /* 버전 유무 마크 배너 */
     .version-badge { position: fixed; bottom: 12px; right: 12px; background-color: #1f2937; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; opacity: 0.6; z-index: 2000; pointer-events: none; }
   </style>
 </head>
 <body>
 
-  <!-- 최신 코드 갱신 유무 검증 뱃지 -->
-  <div class="version-badge">v1.3.0</div>
+  <div class="version-badge">v1.4.0</div>
 
   <div class="container">
     <!-- 1. 로그인 섹션 -->
     <div id="login-section" class="card">
-      <h2>🔒 메모장 로그인</h2>
+      <h2>메모장 로그인</h2>
       <div class="input-group">
         <label>아이디</label>
         <input type="text" id="login-id" placeholder="아이디 입력" onkeydown="checkEnter(event, handleLogin)">
@@ -108,7 +103,7 @@
 
     <!-- 2. 회원가입 섹션 -->
     <div id="signup-section" class="card hidden">
-      <h2>✨ 계정 생성</h2>
+      <h2>계정 생성</h2>
       <div class="input-group">
         <label>사용할 아이디</label>
         <input type="text" id="signup-id" placeholder="새 아이디 입력" onkeydown="checkEnter(event, handleSignup)">
@@ -129,7 +124,7 @@
     <div id="memo-section" class="hidden">
       <div class="header-bar">
         <div class="header-top">
-          <h2>📝 나만의 메모장</h2>
+          <h2>나만의 메모장</h2>
           <div id="user-display" class="user-greeting"></div>
         </div>
         <div class="header-actions">
@@ -138,10 +133,9 @@
         </div>
       </div>
 
-      <!-- 메모 작성/수정 폼 -->
+      <!-- 메모 작성 폼 (순수 등록 기능만 담당) -->
       <div id="memo-form-card" class="card hidden">
-        <h3 id="form-title" style="margin-bottom:12px; color:var(--primary-color);">새 메모 작성</h3>
-        <input type="hidden" id="edit-memo-id">
+        <h3 style="margin-bottom:12px; color:var(--primary-color);">새 메모 작성</h3>
         <div class="input-group">
           <label>제목</label>
           <input type="text" id="memo-title" placeholder="제목을 입력하세요">
@@ -151,7 +145,7 @@
           <textarea id="memo-content" placeholder="메모 내용을 입력하세요"></textarea>
         </div>
         <div class="input-group">
-          <label id="image-label">사진 첨부</label>
+          <label>사진 첨부</label>
           <input type="file" id="memo-image" accept="image/*">
         </div>
         <button id="save-btn" onclick="handleSaveMemo()">메모 저장하기</button>
@@ -166,25 +160,49 @@
   <div id="detail-modal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
-        <button class="modal-close" onclick="closeModal()">×</button>
+        <button class="modal-close" onclick="closeModal('detail-modal')">×</button>
         <h2 id="modal-title" style="word-break: break-all; font-size: 22px;">제목</h2>
         <div id="modal-date" style="font-size:12px; color:#9ca3af; margin-top:4px;">날짜</div>
       </div>
-      
       <div class="modal-scroll-area">
         <img id="modal-img" class="modal-img hidden" src="" alt="첨부 이미지">
         <div id="modal-body" class="modal-body">내용</div>
-        
         <div class="modal-actions">
-          <button class="edit-btn" onclick="openEditMode()">수정</button>
+          <button class="edit-btn" onclick="openEditModal()">수정</button>
           <button class="del-btn" onclick="deleteMemo()">삭제</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- 5. 별도의 수정 전용 팝업 모달 (새로 추가됨) -->
+  <div id="edit-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="modal-close" onclick="closeModal('edit-modal')">×</button>
+        <h2 style="font-size: 20px; color: #f59e0b;">메모 수정하기</h2>
+      </div>
+      <div class="modal-scroll-area" style="padding-top: 10px;">
+        <input type="hidden" id="edit-memo-id">
+        <div class="input-group">
+          <label>제목</label>
+          <input type="text" id="edit-memo-title">
+        </div>
+        <div class="input-group">
+          <label>내용</label>
+          <textarea id="edit-memo-content"></textarea>
+        </div>
+        <div class="input-group">
+          <label>사진 재첨부 (변경 시에만 선택)</label>
+          <input type="file" id="edit-memo-image" accept="image/*">
+        </div>
+        <button id="update-btn" style="background-color: #f59e0b;" onclick="handleUpdateMemo()">수정 완료하기</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // ⚠️ 본인의 주소를 아래에 매핑해 주세요.
+    // ⚠️ 구글 웹 앱 URL 주소를 넣어주세요.
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzCVjxV5UzLVMsmPoqLMMu_Xz0Z1CDZ4FDWWGms0MP5ySJKBgAh2iBGY53kEmmUctjx/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
@@ -295,17 +313,13 @@
       document.getElementById("memo-section").classList.remove("hidden");
       
       const userId = sessionStorage.getItem("loginUserId") || "사용자";
-      document.getElementById("user-display").innerText = `👤 ${userId}님 환영합니다!`;
+      document.getElementById("user-display").innerText = `${userId}님 환영합니다!`;
       
       loadMemos();
     }
 
     function toggleMemoForm() {
       const formCard = document.getElementById("memo-form-card");
-      document.getElementById("form-title").innerText = "새 메모 작성";
-      document.getElementById("edit-memo-id").value = "";
-      document.getElementById("image-label").innerText = "사진 첨부";
-      
       if(formCard.classList.contains("hidden")) {
         document.getElementById("memo-title").value = "";
         document.getElementById("memo-content").value = "";
@@ -316,11 +330,11 @@
       }
     }
 
+    // 신규 작성 저장 기능
     async function handleSaveMemo() {
       const title = document.getElementById("memo-title").value;
       const content = document.getElementById("memo-content").value;
       const imageFile = document.getElementById("memo-image").files[0];
-      const editId = document.getElementById("edit-memo-id").value;
       const saveBtn = document.getElementById("save-btn");
 
       if (!title || !content) return alert("제목과 내용을 입력해주세요.");
@@ -328,7 +342,7 @@
       saveBtn.innerHTML = `<span class="btn-spinner"></span> 저장 중...`;
       saveBtn.disabled = true;
 
-      let imageUrl = editId ? undefined : "";
+      let imageUrl = "";
 
       if (imageFile) {
         const formData = new FormData();
@@ -341,18 +355,12 @@
           const imgData = await imgRes.json();
           if (imgData.success) imageUrl = imgData.data.url;
         } catch (e) {
-          console.error("이미지 업로드 오류:", e);
+          console.error(e);
         }
       }
 
-      const isEditMode = editId !== "";
-      const actionType = isEditMode ? "updateMemo" : "addMemo";
-      const payloadData = isEditMode 
-        ? { id: editId, title, content, imageUrl } 
-        : { title, content, imageUrl };
-
       try {
-        const result = await callBackend(actionType, payloadData);
+        const result = await callBackend("addMemo", { title, content, imageUrl });
         if (result.success) {
           document.getElementById("memo-form-card").classList.add("hidden");
           loadMemos();
@@ -367,7 +375,52 @@
       }
     }
 
-    // [개선] 날짜 파싱 예외 처리를 추가하여 튕김 현상 원천 봉쇄
+    // [수정 전용 팝업 창 함수] 수정 프로세스 처리
+    async function handleUpdateMemo() {
+      const editId = document.getElementById("edit-memo-id").value;
+      const title = document.getElementById("edit-memo-title").value;
+      const content = document.getElementById("edit-memo-content").value;
+      const imageFile = document.getElementById("edit-memo-image").files[0];
+      const updateBtn = document.getElementById("update-btn");
+
+      if (!title || !content) return alert("제목과 내용을 입력해주세요.");
+
+      updateBtn.innerHTML = `<span class="btn-spinner"></span> 수정 중...`;
+      updateBtn.disabled = true;
+
+      let imageUrl = undefined; // 파일 선택 안 하면 기존 이미지 유지용 undefined
+
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append("image", imageFile);
+        try {
+          const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            method: "POST",
+            body: formData
+          });
+          const imgData = await imgRes.json();
+          if (imgData.success) imageUrl = imgData.data.url;
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      try {
+        const result = await callBackend("updateMemo", { id: editId, title, content, imageUrl });
+        if (result.success) {
+          closeModal("edit-modal");
+          loadMemos();
+        } else {
+          alert(result.message);
+        }
+      } catch (e) {
+        alert("메모 수정 실패");
+      } finally {
+        updateBtn.innerText = "수정 완료하기";
+        updateBtn.disabled = false;
+      }
+    }
+
     async function loadMemos() {
       const listContainer = document.getElementById("memo-list");
       listContainer.innerHTML = `
@@ -394,8 +447,6 @@
             card.onclick = () => openModal(index);
             
             let imgHTML = memo.imageUrl ? `<img src="${memo.imageUrl}" class="memo-thumb">` : `<div class="memo-thumb" style="height:40px; background:#e0e7ff;"></div>`;
-            
-            // 날짜 예외 안전 처리 (.split 가능 유무 체크)
             let dateText = "날짜 정보 없음";
             if (memo.createdAt) {
               dateText = memo.createdAt.includes(" ") ? memo.createdAt.split(" ")[0] : memo.createdAt;
@@ -436,26 +487,25 @@
       }
       
       document.getElementById("detail-modal").classList.remove("hidden");
-      document.querySelector(".modal-scroll-area").scrollTop = 0;
+      document.querySelector("#detail-modal .modal-scroll-area").scrollTop = 0;
     }
 
-    function closeModal() {
-      document.getElementById("detail-modal").classList.add("hidden");
-    }
-
-    function openEditMode() {
+    // 수정 버튼 클릭 시 별도의 독립 수정 팝업 창 열기
+    function openEditModal() {
       if(!currentSelectedMemo) return;
-      closeModal();
+      closeModal("detail-modal"); // 상세보기 창 닫기
       
-      document.getElementById("form-title").innerText = "⚙️ 메모 수정하기";
       document.getElementById("edit-memo-id").value = currentSelectedMemo.id;
-      document.getElementById("memo-title").value = currentSelectedMemo.title;
-      document.getElementById("memo-content").value = currentSelectedMemo.content;
-      document.getElementById("image-label").innerText = "사진 재첨부 (변경 시에만 선택)";
-      document.getElementById("memo-image").value = "";
+      document.getElementById("edit-memo-title").value = currentSelectedMemo.title;
+      document.getElementById("edit-memo-content").value = currentSelectedMemo.content;
+      document.getElementById("edit-memo-image").value = ""; // 파일명 리셋
 
-      document.getElementById("memo-form-card").classList.remove("hidden");
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById("edit-modal").classList.remove("hidden");
+      document.querySelector("#edit-modal .modal-scroll-area").scrollTop = 0;
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.add("hidden");
     }
 
     async function deleteMemo() {
@@ -466,7 +516,7 @@
         const result = await callBackend("deleteMemo", { id: currentSelectedMemo.id });
         alert(result.message);
         if(result.success) {
-          closeModal();
+          closeModal("detail-modal");
           loadMemos();
         }
       } catch(e) {
