@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <link rel="icon" href="/memofavicon.ico" type="image/x-icon">
+<link rel="icon" href="/memofavicon.ico" type="image/x-icon">
 <link rel="shortcut icon" href="/memofavicon.ico" type="image/x-icon">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -77,135 +77,117 @@
       --header-bg: rgba(238, 242, 247, 0.65);
     }
 
+    /* 🛠️ [레이아웃 완전 고정] */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     html, body { width: 100%; height: 100%; overflow: hidden; }
-    body { background: var(--bg-gradient); color: var(--text-color); display: flex; justify-content: center; align-items: center; padding: 0; position: relative; transition: background 0.3s ease, color 0.3s ease; }
-    body::before, body::after { content: ""; position: fixed; width: 350px; height: 350px; border-radius: 50%; filter: blur(90px); z-index: -1; opacity: 0.7; transition: background 0.3s ease; }
+    body { background: var(--bg-gradient); color: var(--text-color); display: flex; justify-content: center; align-items: center; position: relative; transition: background 0.3s ease; }
+    body::before, body::after { content: ""; position: fixed; width: 350px; height: 350px; border-radius: 50%; filter: blur(90px); z-index: -1; opacity: 0.7; }
     body::before { top: -60px; left: -60px; background: var(--bg-blob-1); }
     body::after { bottom: -60px; right: -60px; background: var(--bg-blob-2); }
 
-    .container { width: 100%; max-width: 900px; height: 100%; display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10; position: relative; }
-    .card { background: var(--card-glass); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); padding: 28px; border-radius: 24px; border: 1px solid var(--card-border); box-shadow: 0 10px 32px 0 rgba(0, 0, 0, 0.08); transition: all 0.5s cubic-bezier(0.76, 0, 0.24, 1); }
+    /* 중앙 정렬용 메인 컨테이너 */
+    .container { width: 100%; max-width: 900px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; z-index: 10; position: relative; }
 
-    #login-section, #signup-section { width: 100%; max-width: 420px; }
+    /* ✨ 카드 공통 스타일 (강제 중앙) */
+    .card { background: var(--card-glass); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); padding: 32px 24px; border-radius: 24px; border: 1px solid var(--card-border); box-shadow: 0 10px 32px 0 rgba(0, 0, 0, 0.08); transition: all 0.5s cubic-bezier(0.76, 0, 0.24, 1); width: 100%; display: flex; flex-direction: column; align-items: center; }
 
-    /* 패널 비행 트랜지션 클래스 */
-    .view-panel { position: relative; transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.5s ease; }
-    .view-panel.hidden { display: none !important; opacity: 0; }
+    /* 로그인/가입 패널 가로폭 제한 및 정렬 */
+    #login-section, #signup-section { max-width: 380px; margin: auto; }
+    #login-section h2, #signup-section h2 { text-align: center; margin-bottom: 24px; width: 100%; }
+
+    /* 패널 트랜지션 애니메이션 */
+    .view-panel { position: relative; transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.5s ease; width: 100%; display: flex; flex-direction: column; align-items: center; }
+    .view-panel.hidden { display: none !important; }
     .view-panel.fly-up { transform: translateY(-120vh); opacity: 0; }
-    .view-panel.prepare-up { display: flex !important; flex-direction: column; transform: translateY(100vh); opacity: 0; width: 100%; height: 100%; }
-    .view-panel.active-main { transform: translateY(0); opacity: 1; width: 100%; height: 100%; display: flex !important; flex-direction: column; }
+    .view-panel.prepare-up { transform: translateY(100vh); opacity: 0; height: 100%; }
+    .view-panel.active-main { transform: translateY(0); opacity: 1; height: 100%; }
     .view-panel.fly-down { transform: translateY(100vh); opacity: 0; }
-    
-    h2 { margin-bottom: 18px; color: var(--primary-color); font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
-    .input-group { margin-bottom: 14px; }
-    .input-group label { display: block; font-size: 13px; margin-bottom: 4px; font-weight: 600; color: var(--text-muted); }
-    .input-group input, .input-group textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--input-border); border-radius: 12px; font-size: 14px; background: var(--input-bg); backdrop-filter: blur(5px); color: var(--text-color); transition: all 0.25s ease; }
+   
+    /* 🛠️ [핵심] 인풋 그룹 모바일 치우침 방지 중앙 고정 */
+    .input-group { width: 100%; max-width: 310px; margin-bottom: 16px; display: flex; flex-direction: column; align-items: flex-start; }
+    .input-group label { font-size: 13px; margin-bottom: 5px; font-weight: 600; color: var(--text-muted); padding-left: 2px; }
+    .input-group input, .input-group textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--input-border); border-radius: 12px; font-size: 14px; background: var(--input-bg); color: var(--text-color); transition: all 0.25s ease; }
     .input-group input:focus, .input-group textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); }
-    .input-group textarea { resize: vertical; height: 140px; }
+    .input-group textarea { resize: none; height: 120px; }
 
-    .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; cursor: pointer; }
-    .checkbox-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary-color); cursor: pointer; }
-    .checkbox-group label { font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer; }
+    /* 체크박스 정렬 */
+    .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; width: 100%; max-width: 310px; cursor: pointer; justify-content: flex-start; }
+    .checkbox-group input { width: 18px; height: 18px; accent-color: var(--primary-color); }
+    .checkbox-group label { font-size: 14px; font-weight: 600; color: var(--text-muted); }
 
-    button { width: 100%; padding: 14px; background: var(--primary-gradient); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25); }
-    button:hover { opacity: 0.92; box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35); transform: translateY(-1px); }
+    /* 버튼 정수리 정렬 */
+    button { width: 100%; max-width: 310px; padding: 14px; background: var(--primary-gradient); color: white; border: none; border-radius: 14px; font-weight: 600; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.2); margin-top: 8px; }
+    button:hover { opacity: 0.9; transform: translateY(-1px); }
     button:active { transform: translateY(1px); }
-    button:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
 
-    .sub-btn { width: auto; margin: 12px auto 0 auto; padding: 8px 16px; background: rgba(255, 255, 255, 0.12); color: var(--text-muted); border: 1px solid var(--card-border); font-size: 12px; border-radius: 8px; box-shadow: none; display: block; }
-    .sub-btn:hover { background: rgba(255, 255, 255, 0.25); color: var(--text-color); box-shadow: none; }
+    .sub-btn { width: auto; min-width: 100px; margin: 12px auto 0 auto; padding: 8px 16px; background: rgba(255, 255, 255, 0.1); color: var(--text-muted); border: 1px solid var(--card-border); font-size: 12px; border-radius: 10px; box-shadow: none; }
 
-    /* 상단 메뉴바 */
-    .header-bar { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 14px 20px; background: var(--header-bg); backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%); border-radius: 18px; border: 1px solid var(--card-border); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
-    
-    /* 🛠️ [개선] 로고틀 결합형 타이틀 구성부 */
+    /* 고정 상단 메뉴바 (나만의 메모장) */
+    .header-bar { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 12px 18px; background: var(--header-bg); backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%); border-radius: 20px; border: 1px solid var(--card-border); box-shadow: 0 8px 24px rgba(0,0,0,0.05); width: 100%; }
     .header-title-area { display: flex; align-items: center; gap: 10px; }
-    .header-bar h2 { margin-bottom: 0; color: var(--text-color); font-size: 18px; }
-    
-    /* 🎨 [신규] 순수 CSS 입체 유리광택 메모장 로고 오브젝트 */
-    .app-logo {
-      width: 22px; height: 24px; background: var(--primary-gradient); border-radius: 5px; position: relative; box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3); flex-shrink: 0;
-    }
-    .app-logo::before {
-      content: ""; position: absolute; top: 4px; left: 4px; right: 4px; height: 2px; background: rgba(255,255,255,0.6); border-radius: 1px;
-    }
-    .app-logo::after {
-      content: ""; position: absolute; top: 9px; left: 4px; right: 8px; height: 2px; background: rgba(255,255,255,0.4); border-radius: 1px;
-    }
+    .header-bar h2 { margin: 0; color: var(--text-color); font-size: 18px; font-weight: 800; }
+   
+    /* 🎨 순수 CSS 메모장 로고 */
+    .app-logo { width: 22px; height: 24px; background: var(--primary-gradient); border-radius: 5px; position: relative; box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3); }
+    .app-logo::before { content: ""; position: absolute; top: 4px; left: 4px; right: 4px; height: 2px; background: rgba(255,255,255,0.6); border-radius: 1px; }
+    .app-logo::after { content: ""; position: absolute; top: 9px; left: 4px; right: 8px; height: 2px; background: rgba(255,255,255,0.4); border-radius: 1px; }
 
-    .header-right { display: flex; align-items: center; gap: 10px; }
-    
-    /* 🛠️ [개선] 유저 네임 닉네임 라벨 서체 12px 아담화 크기 축소 조율 */
-    .user-greeting { font-size: 12px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
-    
-    .theme-toggle-btn { width: 36px; height: 36px; padding: 0; background: rgba(255,255,255,0.2); color: var(--text-color); border: 1px solid var(--card-border); font-size: 16px; border-radius: 10px; box-shadow: none; display: flex; align-items: center; justify-content: center; }
-    .theme-toggle-btn:hover { background: rgba(255,255,255,0.35); transform: rotate(15deg); }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .user-greeting { font-size: 11px; color: var(--text-muted); font-weight: 700; white-space: nowrap; opacity: 0.8; }
+    .theme-toggle-btn { width: 34px; height: 34px; padding: 0; margin: 0; background: rgba(255,255,255,0.15); border: 1px solid var(--card-border); font-size: 15px; border-radius: 10px; box-shadow: none; display: flex; align-items: center; justify-content: center; }
+    .logout-btn { width: auto; margin: 0; padding: 7px 12px; background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); font-size: 11px; border-radius: 8px; font-weight: bold; }
 
-    .logout-btn { width: auto; padding: 8px 12px; background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); font-size: 12px; border-radius: 8px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
-    .logout-btn:hover { opacity: 0.9; box-shadow: 0 6px 14px rgba(239, 68, 68, 0.35); }
-
-    .fab-btn { display: none; position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; border: none; font-size: 32px; font-weight: 300; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35); cursor: pointer; transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 900; }
-    .fab-btn:hover { box-shadow: 0 10px 24px rgba(16, 185, 129, 0.5); transform: scale(1.08) rotate(90deg); }
-    .fab-btn:active { transform: scale(0.95); }
-
-    .memo-list-wrapper { flex-grow: 1; overflow-y: auto; width: 100%; padding-bottom: 80px; -webkit-overflow-scrolling: touch; }
-    .memo-grid { display: grid; grid-template-columns: 1fr; gap: 18px; width: 100%; }
+    /* 리스트 스크롤 영역 */
+    .memo-list-wrapper { flex-grow: 1; overflow-y: auto; width: 100%; padding: 4px 2px 100px 2px; -webkit-overflow-scrolling: touch; }
+    .memo-grid { display: grid; grid-template-columns: 1fr; gap: 16px; width: 100%; }
     @media (min-width: 600px) { .memo-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (min-width: 900px) { .memo-grid { grid-template-columns: repeat(3, 1fr); } }
-    
-    .memo-card { background: var(--card-glass); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 18px; border: 1px solid var(--card-border); overflow: hidden; cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03); }
-    .memo-card:hover { background: var(--card-glass-hover); border-color: rgba(255, 255, 255, 0.8); transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1); }
-    
+   
+    .memo-card { background: var(--card-glass); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 18px; border: 1px solid var(--card-border); overflow: hidden; cursor: pointer; transition: all 0.3s ease; display: flex; flex-direction: column; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03); }
+    .memo-card:hover { background: var(--card-glass-hover); border-color: rgba(255, 255, 255, 0.8); transform: translateY(-3px); }
+   
     .memo-thumb { width: 100%; height: 140px; object-fit: cover; background: rgba(255, 255, 255, 0.1); }
-    .memo-info { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; }
-    .memo-title { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; color: var(--text-color); }
-    .memo-preview { font-size: 13px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5; }
-    
-    .memo-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--card-border); padding-top: 10px; }
-    .memo-writer { font-weight: 600; color: var(--primary-color); max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .memo-info { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; }
+    .memo-title { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; color: var(--text-color); }
+    .memo-preview { font-size: 13px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+    .memo-meta { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--text-muted); border-top: 1px solid var(--card-border); padding-top: 10px; }
+    .memo-writer { font-weight: 800; color: var(--primary-color); }
 
-    .private-badge { background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: bold; display: inline-block; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2); }
+    /* 플로팅 버튼 */
+    .fab-btn { display: none; position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; border: none; font-size: 32px; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); cursor: pointer; transition: 0.2s; z-index: 900; }
+    .fab-btn:active { transform: scale(0.9); }
 
-    .loader-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0; gap: 12px; }
-    .spinner { width: 36px; height: 36px; border: 4px solid rgba(99, 102, 241, 0.1); border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
-    .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, 0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; opacity: 0; transition: opacity 0.25s ease; }
+    /* 모달 팝업 */
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; opacity: 0; transition: opacity 0.2s ease; }
     .modal.active { display: flex !important; opacity: 1; }
-    
-    .modal-content { background: var(--modal-glass); backdrop-filter: blur(30px) saturate(190%); -webkit-backdrop-filter: blur(30px) saturate(190%); width: 100%; max-width: 520px; border-radius: 24px; position: relative; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--card-border); box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15); transform: scale(0.9); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .modal-content { background: var(--modal-glass); backdrop-filter: blur(30px) saturate(190%); -webkit-backdrop-filter: blur(30px) saturate(190%); width: 100%; max-width: 500px; border-radius: 28px; position: relative; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--card-border); box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15); transform: scale(0.92); transition: 0.25s; }
     .modal.active .modal-content { transform: scale(1); }
-    
-    .modal-header { padding: 20px 24px 14px 24px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--card-border); gap: 16px; }
-    .modal-header-title-box { flex-grow: 1; }
-    
-    .modal-close { width: 32px !important; height: 32px !important; min-width: 32px; padding: 0 !important; font-size: 20px; border: none; background: rgba(255, 255, 255, 0.15); cursor: pointer; color: var(--text-color); display: flex !important; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; box-shadow: none; flex-shrink: 0; }
-    .modal-close:hover { background: rgba(255, 255, 255, 0.35); transform: rotate(90deg); }
+   
+    .modal-header { padding: 20px 24px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--card-border); gap: 16px; }
+    .modal-header h2 { font-size: 18px; margin: 0; color: var(--text-color); font-weight: 800; line-height: 1.3; }
+   
+    /* 🛠️ X 버튼 정렬 고정 */
+    .modal-close { width: 32px !important; height: 32px !important; min-width: 32px; padding: 0 !important; margin: 0 !important; font-size: 18px; border: none; background: rgba(0,0,0,0.05); cursor: pointer; color: var(--text-color); display: flex !important; align-items: center; justify-content: center; border-radius: 50%; flex-shrink: 0; }
 
-    .modal-scroll-area { padding: 18px 24px 24px 24px; overflow-y: auto; flex-grow: 1; }
-    .modal-img { width: 100%; max-height: 260px; object-fit: contain; border-radius: 12px; margin-bottom: 14px; background: rgba(0,0,0,0.05); border: 1px solid var(--card-border); }
-    .modal-body { font-size: 15px; color: var(--text-color); white-space: pre-wrap; line-height: 1.6; margin-bottom: 18px; word-break: break-all; }
-    
-    .modal-actions { display: flex; gap: 8px; margin-top: 14px; border-top: 1px solid var(--card-border); padding-top: 14px; }
-    .modal-actions button { padding: 11px; font-size: 14px; border-radius: 10px; }
-    .edit-btn { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2); } 
-    .edit-btn:hover { opacity: 0.9; box-shadow: 0 6px 14px rgba(245, 158, 11, 0.35); }
-    .del-btn { background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); } 
-    .del-btn:hover { opacity: 0.9; box-shadow: 0 6px 14px rgba(239, 68, 68, 0.35); }
+    .modal-scroll-area { padding: 20px 24px; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; align-items: center; }
+    .modal-img { width: 100%; max-height: 280px; object-fit: contain; border-radius: 16px; margin-bottom: 18px; background: rgba(0,0,0,0.03); border: 1px solid var(--card-border); }
+    .modal-body { width: 100%; font-size: 14px; color: var(--text-color); white-space: pre-wrap; line-height: 1.6; word-break: break-all; }
+   
+    /* 상세 페이지 하단 버튼 정렬 */
+    .modal-actions { display: flex; gap: 12px; margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 16px; width: 100%; justify-content: center; }
+    .modal-actions button { width: 120px; margin: 0; padding: 12px; font-size: 13px; font-weight: bold; border-radius: 12px; }
 
-    /* 🛠️ [개선] 버전 뱃지 좌측 하단 재설정 및 스르륵 페이드 페이즈 레이어 구성 */
-    .version-badge { position: fixed; bottom: 8px; left: 8px; background-color: #1f2937; color: #ffffff; padding: 3px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; opacity: 0.4; z-index: 2000; pointer-events: none; transition: opacity 1.5s cubic-bezier(0.25, 1, 0.5, 1); }
+    /* 버전 뱃지 좌측 하단 고정 */
+    .version-badge { position: fixed; bottom: 10px; left: 10px; background: #1f2937; color: #fff; padding: 3px 7px; border-radius: 5px; font-size: 9px; font-weight: bold; opacity: 0.5; z-index: 2000; pointer-events: none; transition: 1.5s; }
   </style>
 </head>
 <body>
 
-  <div id="app-version" class="version-badge">v2.5.0</div>
+  <div id="app-version" class="version-badge">v2.6.0</div>
 
   <div class="container">
-    <!-- 1. 로그인 패널 -->
     <div id="login-section" class="view-panel card">
-      <h2>메모장 로그인</h2>
+      <h2>로그인</h2>
       <div class="input-group">
         <label>아이디</label>
         <input type="text" id="login-id" placeholder="아이디 입력" onkeydown="checkEnter(event, handleLogin)">
@@ -218,29 +200,26 @@
       <button class="sub-btn" onclick="toggleAuthMode(true)">계정 만들기</button>
     </div>
 
-    <!-- 2. 회원가입 패널 -->
     <div id="signup-section" class="view-panel card hidden">
       <h2>계정 생성</h2>
       <div class="input-group">
-        <label>사용할 아이디</label>
-        <input type="text" id="signup-id" placeholder="새 아이디 입력" onkeydown="checkEnter(event, handleSignup)">
+        <label>새 아이디</label>
+        <input type="text" id="signup-id" placeholder="사용할 아이디" onkeydown="checkEnter(event, handleSignup)">
       </div>
       <div class="input-group">
-        <label>비밀번호 입력</label>
-        <input type="password" id="signup-pw" placeholder="비밀번호 입력" onkeydown="checkEnter(event, handleSignup)">
+        <label>비밀번호</label>
+        <input type="password" id="signup-pw" placeholder="비밀번호" onkeydown="checkEnter(event, handleSignup)">
       </div>
       <div class="input-group">
         <label>비밀번호 재확인</label>
-        <input type="password" id="signup-pw-confirm" placeholder="비밀번호 다시 한번 입력" onkeydown="checkEnter(event, handleSignup)">
+        <input type="password" id="signup-pw-confirm" placeholder="다시 한 번 입력" onkeydown="checkEnter(event, handleSignup)">
       </div>
-      <button id="signup-btn" onclick="handleSignup()">가입 완료하기</button>
+      <button id="signup-btn" onclick="handleSignup()">가입 완료</button>
       <button class="sub-btn" onclick="toggleAuthMode(false)">뒤로 가기</button>
     </div>
 
-    <!-- 3. 메모장 메인 목록 패널 -->
     <div id="memo-section" class="view-panel hidden">
       <div class="header-bar">
-        <!-- 🛠️ 로고 오브젝트를 내장한 타이틀 래핑 영역 -->
         <div class="header-title-area">
           <div class="app-logo"></div>
           <h2>나만의 메모장</h2>
@@ -251,7 +230,7 @@
           <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
         </div>
       </div>
-      
+     
       <div class="memo-list-wrapper">
         <div id="memo-list" class="memo-grid"></div>
       </div>
@@ -260,97 +239,60 @@
 
   <button id="fab-write-btn" class="fab-btn" onclick="openModal('write-modal')">+</button>
 
-  <!-- 4. 작성 모달 -->
   <div id="write-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-header-title-box">
-          <h2 style="font-size: 18px; color: #10b981;">새 메모 작성</h2>
-        </div>
-        <button class="modal-close" onclick="closeModal('write-modal')">×</button>
+        <h2>새 메모 작성</h2>
+        <button class="modal-close" onclick="closeModal('write-modal')">✕</button>
       </div>
       <div class="modal-scroll-area">
-        <div class="input-group">
-          <label>제목</label>
-          <input type="text" id="memo-title" placeholder="제목을 입력하세요">
-        </div>
-        <div class="input-group">
-          <label>내용</label>
-          <textarea id="memo-content" placeholder="메모 내용을 입력하세요"></textarea>
-        </div>
-        <div class="input-group">
-          <label>사진 첨부</label>
-          <input type="file" id="memo-image" accept="image/*">
-        </div>
-        <div class="checkbox-group">
-          <input type="checkbox" id="memo-private">
-          <label for="memo-private">나만 보기 (숨기기)</label>
-        </div>
-        <button id="save-btn" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);" onclick="handleSaveMemo()">메모 저장하기</button>
+        <div class="input-group"><label>제목</label><input type="text" id="memo-title"></div>
+        <div class="input-group"><label>내용</label><textarea id="memo-content"></textarea></div>
+        <div class="input-group"><label>사진</label><input type="file" id="memo-image" accept="image/*"></div>
+        <div class="checkbox-group"><input type="checkbox" id="memo-private"><label for="memo-private">나만 보기</label></div>
+        <button id="save-btn" onclick="handleSaveMemo()">저장하기</button>
       </div>
     </div>
   </div>
 
-  <!-- 5. 상세 모달 -->
   <div id="detail-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-header-title-box">
-          <h2 id="modal-title" style="word-break: break-all; font-size: 20px; display: flex; align-items: center; gap: 8px;">제목</h2>
-          <div id="modal-detail-meta" style="font-size:12px; color: var(--text-muted); margin-top:6px;">
-            <span id="modal-writer" style="font-weight:bold; color: var(--primary-color); margin-right:8px;">작성자</span>
-            <span id="modal-date">날짜</span>
-          </div>
-        </div>
-        <button class="modal-close" onclick="closeModal('detail-modal')">×</button>
+        <h2 id="modal-title"></h2>
+        <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
       </div>
       <div class="modal-scroll-area">
-        <!-- 🛠️ 스크립트단에서 다이내믹하게 은닉 및 표출을 제어할 타겟 -->
-        <img id="modal-img" class="modal-img hidden" src="" alt="">
-        <div id="modal-body" class="modal-body">내용</div>
-        
+        <div id="modal-meta" style="width:100%; font-size:11px; margin-bottom:15px; color:var(--text-muted);">
+          <span id="modal-writer" style="font-weight:bold; color:var(--primary-color);"></span> · <span id="modal-date"></span>
+        </div>
+        <img id="modal-img" class="modal-img hidden" src="">
+        <div id="modal-body" class="modal-body"></div>
         <div id="modal-action-buttons" class="modal-actions">
-          <button class="edit-btn" onclick="openEditModal()">수정</button>
-          <button class="del-btn" onclick="deleteMemo()">삭제</button>
+          <button class="edit-btn" style="background:#f59e0b;" onclick="openEditModal()">수정</button>
+          <button class="del-btn" style="background:#ef4444;" onclick="deleteMemo()">삭제</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 6. 수정 모달 -->
   <div id="edit-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-header-title-box">
-          <h2 style="font-size: 18px; color: #f59e0b;">메모 수정하기</h2>
-        </div>
-        <button class="modal-close" onclick="closeModal('edit-modal')">×</button>
+        <h2>메모 수정</h2>
+        <button class="modal-close" onclick="closeModal('edit-modal')">✕</button>
       </div>
       <div class="modal-scroll-area">
         <input type="hidden" id="edit-memo-id">
-        <div class="input-group">
-          <label>제목</label>
-          <input type="text" id="edit-memo-title">
-        </div>
-        <div class="input-group">
-          <label>내용</label>
-          <textarea id="edit-memo-content"></textarea>
-        </div>
-        <div class="input-group">
-          <label>사진 재첨부 (변경 시에만 선택)</label>
-          <input type="file" id="edit-memo-image" accept="image/*">
-        </div>
-        <div class="checkbox-group">
-          <input type="checkbox" id="edit-memo-private">
-          <label for="edit-memo-private">나만 보기 (숨기기)</label>
-        </div>
-        <button id="update-btn" onclick="handleUpdateMemo()">수정 완료하기</button>
+        <div class="input-group"><label>제목</label><input type="text" id="edit-memo-title"></div>
+        <div class="input-group"><label>내용</label><textarea id="edit-memo-content"></textarea></div>
+        <div class="input-group"><label>사진 변경</label><input type="file" id="edit-memo-image" accept="image/*"></div>
+        <div class="checkbox-group"><input type="checkbox" id="edit-memo-private"><label for="edit-memo-private">나만 보기</label></div>
+        <button id="update-btn" onclick="handleUpdateMemo()">수정 완료</button>
       </div>
     </div>
   </div>
 
   <script>
-    // 🛠️ 지정해 주신 웹앱 수신 URL 반영 처리 완료
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyHXd5ygKPdD6XwicfAt7TNqAF9vV53XvmVNgosRrWkMfd5Spmq2PtaH7fgwh5ngwIO/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
@@ -359,25 +301,16 @@
 
     window.onload = () => {
       const savedTheme = localStorage.getItem("appTheme");
-      if (savedTheme) {
-        document.body.classList.add(savedTheme);
-      }
+      if (savedTheme) document.body.classList.add(savedTheme);
       updateThemeIcon();
-
-      // 🛠️ [신규] 5초 뒤 버전 뱃지 스르륵 사라지는 타이머 연동
-      setTimeout(() => {
-        const badge = document.getElementById("app-version");
-        if(badge) {
-          badge.style.opacity = "0";
-        }
-      }, 5000);
+      setTimeout(() => { if(document.getElementById("app-version")) document.getElementById("app-version").style.opacity = "0"; }, 5000);
 
       if (sessionStorage.getItem("isLoggedIn") === "true") {
         document.getElementById("login-section").classList.add("hidden");
         const memoSec = document.getElementById("memo-section");
         memoSec.classList.remove("hidden");
         memoSec.classList.add("active-main");
-        document.getElementById("fab-write-btn").style.display = "flex"; 
+        document.getElementById("fab-write-btn").style.display = "flex";
         showMemoSection();
       }
     };
@@ -387,15 +320,10 @@
         document.body.classList.remove("dark-theme");
         document.body.classList.add("light-theme");
         localStorage.setItem("appTheme", "light-theme");
-      } else if (document.body.classList.contains("light-theme")) {
+      } else {
         document.body.classList.remove("light-theme");
         document.body.classList.add("dark-theme");
         localStorage.setItem("appTheme", "dark-theme");
-      } else {
-        const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const newTheme = isSystemDark ? "light-theme" : "dark-theme";
-        document.body.classList.add(newTheme);
-        localStorage.setItem("appTheme", newTheme);
       }
       updateThemeIcon();
     }
@@ -403,17 +331,12 @@
     function updateThemeIcon() {
       const iconBtn = document.getElementById("theme-icon-btn");
       if(!iconBtn) return;
-      const isDark = document.body.classList.contains("dark-theme") || 
+      const isDark = document.body.classList.contains("dark-theme") ||
                      (!document.body.classList.contains("light-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
       iconBtn.innerText = isDark ? "🌙" : "☀️";
     }
 
-    function checkEnter(event, callback) {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        callback();
-      }
-    }
+    function checkEnter(event, callback) { if (event.key === "Enter") { event.preventDefault(); callback(); } }
 
     function toggleAuthMode(isSignup) {
       if (isSignup) {
@@ -426,8 +349,7 @@
     }
 
     async function callBackend(action, payload) {
-      const jsonString = JSON.stringify({ action, payload });
-      const targetUrl = `${GAS_URL}?data=${encodeURIComponent(jsonString)}`;
+      const targetUrl = `${GAS_URL}?data=${encodeURIComponent(JSON.stringify({ action, payload }))}`;
       const response = await fetch(targetUrl);
       return await response.json();
     }
@@ -435,101 +357,56 @@
     async function handleSignup() {
       const id = document.getElementById("signup-id").value;
       const password = document.getElementById("signup-pw").value;
-      const passwordConfirm = document.getElementById("signup-pw-confirm").value;
-      const signupBtn = document.getElementById("signup-btn");
-
-      if (!id || !password || !passwordConfirm) return alert("모든 빈칸을 채워주세요.");
-      if (password !== passwordConfirm) return alert("비밀번호 재확인이 일치하지 않습니다.");
-
-      signupBtn.disabled = true;
-      signupBtn.innerHTML = `<span class="btn-spinner"></span> 생성 중...`;
-
-      try {
-        const result = await callBackend("signup", { id, password });
-        alert(result.message);
-        if (result.success) {
-          document.getElementById("signup-id").value = "";
-          document.getElementById("signup-pw").value = "";
-          document.getElementById("signup-pw-confirm").value = "";
-          toggleAuthMode(false);
-        }
-      } catch (err) {
-        console.error(err);
-        alert("회원가입 중 에러가 발생했습니다.");
-      } finally {
-        signupBtn.disabled = false;
-        signupBtn.innerHTML = "가입 완료하기";
-      }
+      if (!id || !password) return alert("입력란을 채워주세요.");
+      const result = await callBackend("signup", { id, password });
+      alert(result.message);
+      if (result.success) toggleAuthMode(false);
     }
 
     async function handleLogin() {
       const id = document.getElementById("login-id").value;
       const password = document.getElementById("login-pw").value;
-      const loginBtn = document.getElementById("login-btn");
-
       if (!id || !password) return alert("아이디와 비밀번호를 입력해주세요.");
-
-      loginBtn.disabled = true;
-      loginBtn.innerHTML = `<span class="btn-spinner"></span> 접속 중...`;
+      const loginBtn = document.getElementById("login-btn");
+      loginBtn.disabled = true; loginBtn.innerText = "접속 중...";
 
       try {
         const result = await callBackend("login", { id, password });
         if (result.success) {
           sessionStorage.setItem("isLoggedIn", "true");
-          sessionStorage.setItem("loginUserId", result.userId); 
-          sessionStorage.setItem("isAdmin", result.isAdmin === true ? "true" : "false"); 
-          
+          sessionStorage.setItem("loginUserId", result.userId);
+          sessionStorage.setItem("isAdmin", result.isAdmin === true ? "true" : "false");
           const loginSec = document.getElementById("login-section");
           const memoSec = document.getElementById("memo-section");
-          
           loginSec.classList.add("fly-up");
-          memoSec.classList.add("prepare-up");
-          
           setTimeout(() => {
             loginSec.classList.add("hidden");
             memoSec.classList.remove("hidden");
             setTimeout(() => {
               memoSec.classList.add("active-main");
-              document.getElementById("fab-write-btn").style.display = "flex"; 
+              document.getElementById("fab-write-btn").style.display = "flex";
             }, 50);
             showMemoSection();
           }, 450);
-
-        } else {
-          alert(result.message);
-        }
-      } catch (err) {
-        console.error(err);
-        alert("로그인 중 에러가 발생했습니다.");
-      } finally {
-        loginBtn.disabled = false;
-        loginBtn.innerHTML = "입장하기";
-      }
+        } else { alert(result.message); }
+      } catch (err) { alert("로그인 중 에러 발생"); } finally { loginBtn.disabled = false; loginBtn.innerText = "입장하기"; }
     }
 
     function handleLogout() {
-      sessionStorage.removeItem("isLoggedIn");
-      sessionStorage.removeItem("loginUserId");
-      sessionStorage.removeItem("isAdmin");
-      
+      sessionStorage.clear();
       const loginSec = document.getElementById("login-section");
       const memoSec = document.getElementById("memo-section");
-      const fabBtn = document.getElementById("fab-write-btn");
-      
-      fabBtn.style.display = "none"; 
+      document.getElementById("fab-write-btn").style.display = "none";
       memoSec.classList.remove("active-main");
       memoSec.classList.add("fly-down");
-      
       setTimeout(() => {
         memoSec.classList.add("hidden");
-        memoSec.classList.remove("fly-down", "prepare-up");
-        
+        memoSec.classList.remove("fly-down");
         loginSec.style.transition = "none";
         loginSec.style.transform = "translateY(-120vh)";
         loginSec.classList.remove("hidden");
-        
         setTimeout(() => {
-          loginSec.style.transition = "transform 0.5s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.5s ease";
+          loginSec.style.transition = "all 0.5s cubic-bezier(0.76, 0, 0.24, 1)";
           loginSec.style.transform = "translateY(0)";
           loginSec.style.opacity = "1";
         }, 50);
@@ -539,75 +416,43 @@
     function showMemoSection() {
       const userId = sessionStorage.getItem("loginUserId") || "사용자";
       const isAdmin = sessionStorage.getItem("isAdmin") === "true";
-      document.getElementById("user-display").innerText = isAdmin ? `${userId}님 (관리자)` : `${userId}님`;
+      document.getElementById("user-display").innerText = isAdmin ? `${userId}님(관리자)` : `${userId}님`;
       loadMemos();
     }
 
     function openModal(modalId) {
-      const targetModal = document.getElementById(modalId);
-      targetModal.style.display = "flex"; 
-      setTimeout(() => {
-        targetModal.classList.add("active"); 
-      }, 10);
-      targetModal.querySelector(".modal-scroll-area").scrollTop = 0;
+      const m = document.getElementById(modalId);
+      m.style.display = "flex"; setTimeout(() => m.classList.add("active"), 10);
     }
 
     function closeModal(modalId) {
-      const targetModal = document.getElementById(modalId);
-      targetModal.classList.remove("active");
-      setTimeout(() => {
-        targetModal.style.display = "none"; 
-      }, 200);
+      const m = document.getElementById(modalId);
+      m.classList.remove("active"); setTimeout(() => m.style.display = "none", 200);
     }
 
     async function handleSaveMemo() {
       const title = document.getElementById("memo-title").value;
       const content = document.getElementById("memo-content").value;
       const imageFile = document.getElementById("memo-image").files[0];
-      const isPrivate = document.getElementById("memo-private").checked; 
+      const isPrivate = document.getElementById("memo-private").checked;
       const saveBtn = document.getElementById("save-btn");
-      const currentWriter = sessionStorage.getItem("loginUserId");
-
       if (!title || !content) return alert("제목과 내용을 입력해주세요.");
 
-      saveBtn.innerHTML = `<span class="btn-spinner"></span> 저장 중...`;
-      saveBtn.disabled = true;
-
+      saveBtn.disabled = true; saveBtn.innerText = "저장 중...";
       let imageUrl = "";
-
       if (imageFile) {
-        const formData = new FormData();
-        formData.append("image", imageFile);
-        try {
-          const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-            method: "POST",
-            body: formData
-          });
-          const imgData = await imgRes.json();
-          if (imgData.success) imageUrl = imgData.data.url;
-        } catch (e) {
-          console.error(e);
-        }
+        const fd = new FormData(); fd.append("image", imageFile);
+        const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
+        const imgData = await imgRes.json();
+        if (imgData.success) imageUrl = imgData.data.url;
       }
 
-      try {
-        const result = await callBackend("addMemo", { title, content, imageUrl, writer: currentWriter, isPrivate: isPrivate });
-        if (result.success) {
-          document.getElementById("memo-title").value = "";
-          document.getElementById("memo-content").value = "";
-          document.getElementById("memo-image").value = "";
-          document.getElementById("memo-private").checked = false; 
-          closeModal("write-modal");
-          loadMemos();
-        } else {
-          alert(result.message);
-        }
-      } catch (e) {
-        alert("메모 저장 실패");
-      } finally {
-        saveBtn.innerText = "메모 저장하기";
-        saveBtn.disabled = false;
-      }
+      const result = await callBackend("addMemo", { title, content, imageUrl, writer: sessionStorage.getItem("loginUserId"), isPrivate });
+      if (result.success) {
+        document.getElementById("memo-title").value = ""; document.getElementById("memo-content").value = "";
+        closeModal("write-modal"); loadMemos();
+      } else alert(result.message);
+      saveBtn.disabled = false; saveBtn.innerText = "저장하기";
     }
 
     async function handleUpdateMemo() {
@@ -616,157 +461,68 @@
       const content = document.getElementById("edit-memo-content").value;
       const imageFile = document.getElementById("edit-memo-image").files[0];
       const isPrivate = document.getElementById("edit-memo-private").checked;
-      const updateBtn = document.getElementById("update-btn");
-      const currentWriter = sessionStorage.getItem("loginUserId");
-      const isAdmin = sessionStorage.getItem("isAdmin") === "true";
+      if (!title || !content) return alert("내용을 채워주세요.");
 
-      if (!title || !content) return alert("제목과 내용을 입력해주세요.");
-
-      updateBtn.innerHTML = `<span class="btn-spinner"></span> 수정 중...`;
-      updateBtn.disabled = true;
-
-      let imageUrl = undefined; 
-
+      let imageUrl = undefined;
       if (imageFile) {
-        const formData = new FormData();
-        formData.append("image", imageFile);
-        try {
-          const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-            method: "POST",
-            body: formData
-          });
-          const imgData = await imgRes.json();
-          if (imgData.success) imageUrl = imgData.data.url;
-        } catch (e) {
-          console.error(e);
-        }
+        const fd = new FormData(); fd.append("image", imageFile);
+        const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
+        const imgData = await imgRes.json();
+        if (imgData.success) imageUrl = imgData.data.url;
       }
 
-      try {
-        const result = await callBackend("updateMemo", { id: editId, title, content, imageUrl, writer: currentWriter, isPrivate: isPrivate, isAdmin: isAdmin });
-        if (result.success) {
-          closeModal("edit-modal");
-          loadMemos();
-        } else {
-          alert(result.message);
-        }
-      } catch (e) {
-        alert("메모 수정 실패");
-      } finally {
-        updateBtn.innerText = "수정 완료하기";
-        updateBtn.disabled = false;
-      }
+      const result = await callBackend("updateMemo", { id: editId, title, content, imageUrl, writer: sessionStorage.getItem("loginUserId"), isPrivate, isAdmin: sessionStorage.getItem("isAdmin")==="true" });
+      if (result.success) { closeModal("edit-modal"); loadMemos(); }
+      else alert(result.message);
     }
 
     async function loadMemos() {
       const listContainer = document.getElementById("memo-list");
-      const currentUser = sessionStorage.getItem("loginUserId") || "";
-      const isAdmin = sessionStorage.getItem("isAdmin") === "true";
-      
-      listContainer.innerHTML = `
-        <div class="loader-container">
-          <div class="spinner"></div>
-          <div style="font-size: 13px; color: var(--text-muted);">메모 데이터를 연동하는 중...</div>
-        </div>
-      `;
-
-      try {
-        const result = await callBackend("getMemos", { userId: currentUser, isAdmin: isAdmin });
-        if (result.success) {
-          listContainer.innerHTML = "";
-          cachedMemos = result.memos;
-
-          if (cachedMemos.length === 0) {
-            listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align:center; color: var(--text-muted); padding: 40px; font-size:14px;'>등록된 메모가 없습니다.</p>";
-            return;
-          }
-
-          cachedMemos.forEach((memo, index) => {
-            const card = document.createElement("div");
-            card.className = "memo-card";
-            card.onclick = () => openDetailModal(index);
-            
-            let imgHTML = memo.imageUrl ? `<img src="${memo.imageUrl}" class="memo-thumb">` : `<div class="memo-thumb" style="height:40px; background:rgba(255,255,255,0.05);"></div>`;
-            let dateText = "날짜 정보 없음";
-            if (memo.createdAt) {
-              dateText = memo.createdAt.includes(" ") ? memo.createdAt.split(" ")[0] : memo.createdAt;
-            }
-            let writerText = memo.writer && memo.writer !== "undefined" ? memo.writer : "익명";
-            let privateBadgeHTML = memo.isPrivate ? `<span class="private-badge">숨김</span> ` : "";
-
-            card.innerHTML = `
-              ${imgHTML}
-              <div class="memo-info">
-                <div>
-                  <div class="memo-title">${privateBadgeHTML}${escapeHtml(memo.title)}</div>
-                  <div class="memo-preview">${escapeHtml(memo.content)}</div>
-                </div>
-                <div class="memo-meta">
-                  <span class="memo-writer">작성자: ${escapeHtml(writerText)}</span>
-                  <span class="memo-date">${dateText}</span>
-                </div>
-              </div>
-            `;
-            listContainer.appendChild(card);
-          });
-        }
-      } catch (e) {
-        console.error(e);
-        listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align:center; padding: 40px;'>메모를 불러오지 못했습니다.</p>";
+      listContainer.innerHTML = `<div class="loader-container"><div class="spinner"></div><div style="font-size:12px; color:var(--text-muted); margin-top:10px;">데이터 로드 중...</div></div>`;
+      const result = await callBackend("getMemos", { userId: sessionStorage.getItem("loginUserId"), isAdmin: sessionStorage.getItem("isAdmin")==="true" });
+      if (result.success) {
+        listContainer.innerHTML = ""; cachedMemos = result.memos;
+        if (cachedMemos.length === 0) { listContainer.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:50px; color:var(--text-muted); font-size:13px;'>저장된 메모가 없습니다.</p>"; return; }
+        cachedMemos.forEach((memo, idx) => {
+          const card = document.createElement("div"); card.className = "memo-card"; card.onclick = () => openDetailModal(idx);
+          let imgHTML = memo.imageUrl ? `<img src="${memo.imageUrl}" class="memo-thumb">` : `<div class="memo-thumb" style="height:35px; background:rgba(255,255,255,0.1);"></div>`;
+          let privateBadge = memo.isPrivate ? `<span class="private-badge">숨김</span> ` : "";
+          card.innerHTML = `${imgHTML}<div class="memo-info"><div><div class="memo-title">${privateBadge}${escapeHtml(memo.title)}</div><div class="memo-preview">${escapeHtml(memo.content)}</div></div><div class="memo-meta"><span class="memo-writer">${escapeHtml(memo.writer)}</span><span>${memo.createdAt.split(" ")[0]}</span></div></div>`;
+          listContainer.appendChild(card);
+        });
       }
     }
 
-    // 🛠️ [개선] 상세보기 패널 바인딩 함수 내 이미지 조건부 렌더링 세밀화
-    function openDetailModal(index) {
-      currentSelectedMemo = cachedMemos[index];
-      const currentUser = sessionStorage.getItem("loginUserId");
-      const isAdmin = sessionStorage.getItem("isAdmin") === "true"; 
-      
-      let privateBadgeHTML = currentSelectedMemo.isPrivate ? `<span class="private-badge" style="font-size:12px; padding:3px 6px; vertical-align:middle;">숨김</span> ` : "";
-      document.getElementById("modal-title").innerHTML = `${privateBadgeHTML}${escapeHtml(currentSelectedMemo.title)}`;
-      
-      document.getElementById("modal-body").innerText = currentSelectedMemo.content;
+    function openDetailModal(idx) {
+      currentSelectedMemo = cachedMemos[idx];
+      const isOwner = String(sessionStorage.getItem("loginUserId")).trim() === String(currentSelectedMemo.writer).trim();
+      const isAdmin = sessionStorage.getItem("isAdmin") === "true";
+      document.getElementById("modal-title").innerHTML = (currentSelectedMemo.isPrivate ? `<span class="private-badge" style="vertical-align:middle; margin-right:5px;">숨김</span>` : "") + escapeHtml(currentSelectedMemo.title);
+      document.getElementById("modal-writer").innerText = currentSelectedMemo.writer;
       document.getElementById("modal-date").innerText = currentSelectedMemo.createdAt;
-      
-      let displayWriter = currentSelectedMemo.writer && currentSelectedMemo.writer !== "undefined" ? currentSelectedMemo.writer : "익명";
-      document.getElementById("modal-writer").innerText = `작성자: ${displayWriter}`;
-      
-      // 🔒 사진 유무를 칼같이 체크하여 노출 상태 통제 (결함 원천 차단)
-      const modalImg = document.getElementById("modal-img");
-      if (currentSelectedMemo.imageUrl && currentSelectedMemo.imageUrl.trim() !== "") {
-        modalImg.src = currentSelectedMemo.imageUrl;
-        modalImg.classList.remove("hidden");
-      } else {
-        modalImg.src = "";
-        modalImg.classList.add("hidden"); // 주소가 비어있으면 레이아웃에서 완전 제외
-      }
-      
-      const actionButtons = document.getElementById("modal-action-buttons");
-      if (String(currentUser).trim() === String(currentSelectedMemo.writer).trim() || isAdmin) {
-        actionButtons.classList.remove("hidden");
-      } else {
-        actionButtons.classList.add("hidden");
-      }
-      
+      document.getElementById("modal-body").innerText = currentSelectedMemo.content;
+      const img = document.getElementById("modal-img");
+      if(currentSelectedMemo.imageUrl) { img.src = currentSelectedMemo.imageUrl; img.classList.remove("hidden"); } else { img.classList.add("hidden"); }
+      document.getElementById("modal-action-buttons").style.display = (isOwner || isAdmin) ? "flex" : "none";
       openModal("detail-modal");
     }
 
     function openEditModal() {
-      if(!currentSelectedMemo) return;
-      closeModal("detail-modal"); 
-      
+      closeModal("detail-modal");
       document.getElementById("edit-memo-id").value = currentSelectedMemo.id;
       document.getElementById("edit-memo-title").value = currentSelectedMemo.title;
       document.getElementById("edit-memo-content").value = currentSelectedMemo.content;
-      document.getElementById("edit-memo-image").value = ""; 
-      document.getElementById("edit-memo-private").checked = currentSelectedMemo.isPrivate; 
-
+      document.getElementById("edit-memo-private").checked = currentSelectedMemo.isPrivate;
       openModal("edit-modal");
     }
 
-    function escapeHtml(text) {
-      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    async function deleteMemo() {
+      if(!confirm("삭제하시겠습니까?")) return;
+      const result = await callBackend("deleteMemo", { id: currentSelectedMemo.id, writer: sessionStorage.getItem("loginUserId"), isAdmin: sessionStorage.getItem("isAdmin")==="true" });
+      if(result.success) { closeModal("detail-modal"); loadMemos(); }
     }
+
+    function escapeHtml(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   </script>
 </body>
 </html>
