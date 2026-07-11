@@ -96,7 +96,7 @@
     body::before { top: -60px; left: -60px; background: var(--bg-blob-1); }
     body::after { bottom: -60px; right: -60px; background: var(--bg-blob-2); }
 
-    .container { width: 100%; max-width: 900px; margin: 0 auto; z-index: 10; }
+    .container { width: 100%; max-width: 900px; margin: 0 auto; z-index: 10; position: relative; min-height: 400px; }
     
     .card { 
       background: var(--card-glass); 
@@ -106,12 +106,40 @@
       border-radius: 24px; 
       border: 1px solid var(--card-border);
       box-shadow: 0 10px 32px 0 rgba(0, 0, 0, 0.08); 
-      transition: all 0.3s ease;
+      transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
     #login-section, #signup-section {
       max-width: 420px;
       margin: 0 auto;
+    }
+
+    /* 🎬 [핵심 추가] 로그인 성공 단계 비행 트랜지션 효과 연출 프레임 */
+    .view-panel {
+      position: relative;
+      width: 100%;
+      transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.5s ease;
+    }
+    /* 로그아웃 및 숨김 기본 대기 상태 */
+    .view-panel.hidden {
+      display: none !important;
+      opacity: 0;
+    }
+    /* 🚀 로그인창 위로 비행 이탈 타겟 */
+    .view-panel.fly-up {
+      transform: translateY(-120vh);
+      opacity: 0;
+    }
+    /* 🚀 리스트 아래에서 위로 비행 안착 대기 타겟 */
+    .view-panel.prepare-up {
+      display: block !important;
+      transform: translateY(100vh);
+      opacity: 0;
+    }
+    /* 🚀 연동 완착 메인 완료 프레임 */
+    .view-panel.active-main {
+      transform: translateY(0);
+      opacity: 1;
     }
     
     h2 { margin-bottom: 18px; color: var(--primary-color); font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
@@ -166,18 +194,19 @@
     button:active { transform: translateY(1px); }
     button:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
 
+    /* 🛠️ [개선] 계정 만들기 및 뒤로가기 서브 버튼 아담하게 크기 정밀 축소화 */
     .sub-btn { 
-      background: rgba(255, 255, 255, 0.15); 
+      width: auto;
+      margin: 12px auto 0 auto;
+      padding: 8px 16px; 
+      background: rgba(255, 255, 255, 0.12); 
       color: var(--text-muted); 
-      margin-top: 12px; 
       border: 1px solid var(--card-border); 
-      padding: 12px; 
-      font-size: 14px; 
+      font-size: 12px; 
+      border-radius: 8px;
       box-shadow: none;
     }
-    .sub-btn:hover { background: rgba(255, 255, 255, 0.3); color: var(--text-color); box-shadow: none; }
-
-    .hidden { display: none !important; }
+    .sub-btn:hover { background: rgba(255, 255, 255, 0.25); color: var(--text-color); box-shadow: none; }
 
     /* 상단 고정 바 */
     .header-bar { 
@@ -214,7 +243,7 @@
     .fab-btn:hover { box-shadow: 0 10px 24px rgba(16, 185, 129, 0.5); transform: scale(1.08) rotate(90deg); }
     .fab-btn:active { transform: scale(0.95); }
 
-    /* 데스크탑 최적화 그리드 */
+    /* 데스크탑 그리드 최적화 */
     .memo-grid { display: grid; grid-template-columns: 1fr; gap: 18px; width: 100%; }
     @media (min-width: 600px) {
       .memo-grid { grid-template-columns: repeat(2, 1fr); }
@@ -253,13 +282,13 @@
 
     .private-badge { background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: bold; display: inline-block; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2); }
 
-    /* 로딩 애니메이션 */
+    /* 로딩 스피너 */
     .loader-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0; gap: 12px; }
     .spinner { width: 36px; height: 36px; border: 4px solid rgba(99, 102, 241, 0.1); border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
     .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, 0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* 모달 */
+    /* 리퀴드 글래스 모달 */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; opacity: 0; transition: opacity 0.25s ease; }
     .modal.active { display: flex !important; opacity: 1; }
     
@@ -285,7 +314,7 @@
     .modal-header { padding: 20px 24px 14px 24px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--card-border); gap: 16px; }
     .modal-header-title-box { flex-grow: 1; }
     
-    /* 원형 닫기 버튼 */
+    /* 🛠️ [복구 완료] 늘어나지 않는 엄밀한 정사각형/원형 X 닫기 버튼 */
     .modal-close { 
       width: 32px !important; 
       height: 32px !important; 
@@ -293,7 +322,7 @@
       padding: 0 !important; 
       font-size: 20px; 
       border: none; 
-      background: rgba(255, 255, 255, 0.2); 
+      background: rgba(255, 255, 255, 0.15); 
       cursor: pointer; 
       color: var(--text-color); 
       display: flex !important; 
@@ -304,7 +333,7 @@
       box-shadow: none;
       flex-shrink: 0;
     }
-    .modal-close:hover { background: rgba(255, 255, 255, 0.4); transform: rotate(90deg); }
+    .modal-close:hover { background: rgba(255, 255, 255, 0.35); transform: rotate(90deg); }
 
     .modal-scroll-area { padding: 18px 24px 24px 24px; overflow-y: auto; flex-grow: 1; }
     .modal-img { width: 100%; max-height: 260px; object-fit: contain; border-radius: 12px; margin-bottom: 14px; background: rgba(0,0,0,0.05); border: 1px solid var(--card-border); }
@@ -322,10 +351,11 @@
 </head>
 <body>
 
-  <div class="version-badge">v2.1.2</div>
+  <div class="version-badge">v2.2.0</div>
 
   <div class="container">
-    <div id="login-section" class="card">
+    <!-- 1. 로그인 패널 영역 -->
+    <div id="login-section" class="view-panel card">
       <h2>메모장 로그인</h2>
       <div class="input-group">
         <label>아이디</label>
@@ -336,10 +366,11 @@
         <input type="password" id="login-pw" placeholder="비밀번호 입력" onkeydown="checkEnter(event, handleLogin)">
       </div>
       <button id="login-btn" onclick="handleLogin()">입장하기</button>
-      <button class="sub-btn" onclick="toggleAuthMode(true)">계정 만들기 (회원가입)</button>
+      <button class="sub-btn" onclick="toggleAuthMode(true)">계정 만들기</button>
     </div>
 
-    <div id="signup-section" class="card hidden">
+    <!-- 2. 회원가입 패널 영역 -->
+    <div id="signup-section" class="view-panel card hidden">
       <h2>계정 생성</h2>
       <div class="input-group">
         <label>사용할 아이디</label>
@@ -354,10 +385,11 @@
         <input type="password" id="signup-pw-confirm" placeholder="비밀번호 다시 한번 입력" onkeydown="checkEnter(event, handleSignup)">
       </div>
       <button id="signup-btn" onclick="handleSignup()">가입 완료하기</button>
-      <button class="sub-btn" onclick="toggleAuthMode(false)">로그인 화면으로 돌아가기</button>
+      <button class="sub-btn" onclick="toggleAuthMode(false)">뒤로 가기</button>
     </div>
 
-    <div id="memo-section" class="hidden">
+    <!-- 3. 메모장 메인 목록 패널 영역 -->
+    <div id="memo-section" class="view-panel hidden">
       <div class="header-bar">
         <h2>나만의 메모장</h2>
         <div class="header-right">
@@ -366,13 +398,13 @@
           <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
         </div>
       </div>
-
       <div id="memo-list" class="memo-grid"></div>
     </div>
   </div>
 
   <button id="fab-write-btn" class="fab-btn hidden" onclick="openModal('write-modal')">+</button>
 
+  <!-- 4. 새 메모 작성 전용 팝업 창 모달 -->
   <div id="write-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -403,6 +435,7 @@
     </div>
   </div>
 
+  <!-- 5. 상세 보기 팝업 모달 -->
   <div id="detail-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -427,6 +460,7 @@
     </div>
   </div>
 
+  <!-- 6. 별도의 수정 전용 팝업 모달 -->
   <div id="edit-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -459,7 +493,8 @@
   </div>
 
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyWYM02JnaHlCIDXhlt0opAbJfwMTplBRh-9r_Sc283GenMM2in_pR9PthxU0pdmGbQ/exec";
+    // ⚠️ 본인의 새로운 구글 POST용 웹 앱 URL 주소를 아래에 세팅해 주세요.
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbySa62AzB3stSZ11qv6DcLpkVigl1cqrEC2NtFdM9E_Bnc-9fu08JDh_Ap_ZCPxj6up/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
     let cachedMemos = [];
@@ -472,6 +507,12 @@
       }
 
       if (sessionStorage.getItem("isLoggedIn") === "true") {
+        // 자동로그인 세션 유지시에는 트랜지션 없이 목록 강제 노출
+        document.getElementById("login-section").classList.add("hidden");
+        const memoSec = document.getElementById("memo-section");
+        memoSec.classList.remove("hidden");
+        memoSec.classList.add("active-main");
+        document.getElementById("fab-write-btn").classList.remove("hidden");
         showMemoSection();
       }
     };
@@ -510,11 +551,16 @@
       }
     }
 
+    // 💡 [개선] 대용량 수용을 위해 규격 제한이 없는 POST 비동기 요청 본문 구조로 전면 전환
     async function callBackend(action, payload) {
-      const dataStr = JSON.stringify({ action, payload });
-      const targetUrl = `${GAS_URL}?data=${encodeURIComponent(dataStr)}`;
+      const targetUrl = GAS_URL;
+      const bodyData = JSON.stringify({ action, payload });
       
-      const response = await fetch(targetUrl, { method: "GET" });
+      const response = await fetch(targetUrl, { 
+        method: "POST", 
+        headers: { "Content-Type": "text/plain" }, // CORS 사전차단(Preflight) 우회를 위해 text/plain 규격 사용
+        body: bodyData 
+      });
       const textData = await response.text(); 
       return JSON.parse(textData); 
     }
@@ -565,7 +611,25 @@
           sessionStorage.setItem("isLoggedIn", "true");
           sessionStorage.setItem("loginUserId", result.userId); 
           sessionStorage.setItem("isAdmin", result.isAdmin === true ? "true" : "false"); 
-          showMemoSection();
+          
+          // 🎬 [애니메이션 실행] 로그인 창은 위로 날아가고 목록 창은 아래에서 위로 날아오게 트리거 실행
+          const loginSec = document.getElementById("login-section");
+          const memoSec = document.getElementById("memo-section");
+          
+          loginSec.classList.add("fly-up");
+          memoSec.classList.add("prepare-up");
+          
+          setTimeout(() => {
+            loginSec.classList.add("hidden");
+            memoSec.classList.remove("hidden");
+            // 안착 트랜지션 구동
+            setTimeout(() => {
+              memoSec.classList.add("active-main");
+              document.getElementById("fab-write-btn").classList.remove("hidden");
+            }, 50);
+            showMemoSection();
+          }, 450);
+
         } else {
           alert(result.message);
         }
@@ -582,23 +646,21 @@
       sessionStorage.removeItem("isLoggedIn");
       sessionStorage.removeItem("loginUserId");
       sessionStorage.removeItem("isAdmin");
-      document.getElementById("login-section").classList.remove("hidden");
-      document.getElementById("signup-section").classList.add("hidden");
-      document.getElementById("memo-section").classList.add("hidden");
+      
+      const loginSec = document.getElementById("login-section");
+      const memoSec = document.getElementById("memo-section");
+      
+      // 상태 복구 리셋
+      memoSec.classList.remove("active-main");
+      memoSec.classList.add("hidden");
+      loginSec.classList.remove("fly-up", "hidden");
       document.getElementById("fab-write-btn").classList.add("hidden"); 
     }
 
     function showMemoSection() {
-      document.getElementById("login-section").classList.add("hidden");
-      document.getElementById("signup-section").classList.add("hidden");
-      document.getElementById("memo-section").classList.remove("hidden");
-      document.getElementById("fab-write-btn").classList.remove("hidden"); 
-      
       const userId = sessionStorage.getItem("loginUserId") || "사용자";
       const isAdmin = sessionStorage.getItem("isAdmin") === "true";
-      
       document.getElementById("user-display").innerText = isAdmin ? `${userId}님 (관리자)` : `${userId}님`;
-      
       loadMemos();
     }
 
@@ -619,7 +681,6 @@
       }, 200);
     }
 
-    // 🛠️ 버그 수정 핵심부: 작성 성공 후 목록 조회 시 스토리지 정보를 패키징하여 안전하게 원격 리로드 유도
     async function handleSaveMemo() {
       const title = document.getElementById("memo-title").value;
       const content = document.getElementById("memo-content").value;
@@ -658,7 +719,7 @@
           document.getElementById("memo-image").value = "";
           document.getElementById("memo-private").checked = false; 
           closeModal("write-modal");
-          loadMemos(); // 🛠️ 여기서 내부의 매개변수가 스토리지를 직접 참조하도록 고쳐 연동 오류를 해결했습니다.
+          loadMemos();
         } else {
           alert(result.message);
         }
@@ -819,14 +880,6 @@
       document.getElementById("edit-memo-private").checked = currentSelectedMemo.isPrivate; 
 
       openModal("edit-modal");
-    }
-
-    function closeModal(modalId) {
-      const targetModal = document.getElementById(modalId);
-      targetModal.classList.remove("active");
-      setTimeout(() => {
-        targetModal.style.display = "none"; 
-      }, 200);
     }
 
     async function deleteMemo() {
