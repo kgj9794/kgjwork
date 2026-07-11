@@ -44,7 +44,7 @@
     .write-btn { width: auto; padding: 8px 14px; background-color: #10b981; font-size: 13px; }
     .write-btn:hover { background-color: #059669; }
 
-    /* Memo Grid */
+    /* Memo List View (Grid) */
     .memo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
     .memo-card { background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border-color); overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; }
     .memo-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
@@ -55,22 +55,26 @@
     .memo-preview { font-size: 13px; color: #6b7280; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; line-height: 1.4; }
     .memo-date { font-size: 11px; color: #9ca3af; text-align: right; }
 
-    /* 스피너 */
+    /* 로딩 애니메이션 스피너 */
     .loader-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; gap: 12px; }
     .spinner { width: 40px; height: 40px; border: 4px solid rgba(79, 70, 229, 0.1); border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* Modal */
+    /* Modal Styling */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-    .modal-content { background: #fff; width: 100%; max-width: 500px; border-radius: 12px; position: relative; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
+    .modal-content { background: #fff; width: 100%; max-width: 500px; border-radius: 12px; position: relative; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+    
     .modal-header { padding: 20px 24px 10px 24px; position: relative; padding-right: 50px; }
     .modal-close { position: absolute; top: 16px; right: 20px; font-size: 28px; border: none; background: none; cursor: pointer; color: #9ca3af; line-height: 1; z-index: 1010; }
+    .modal-close:hover { color: #1f2937; }
+
     .modal-scroll-area { padding: 0 24px 24px 24px; overflow-y: auto; flex-grow: 1; }
     .modal-img { width: 100%; max-height: 260px; object-fit: contain; border-radius: 6px; margin: 12px 0; background: #fafafa; }
     .modal-body { font-size: 15px; color: #374151; white-space: pre-wrap; line-height: 1.6; margin-bottom: 20px; word-break: break-all; }
+    
     .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
-    .edit-btn { background-color: #f59e0b; }
-    .del-btn { background-color: #ef4444; }
+    .edit-btn { background-color: #f59e0b; } .edit-btn:hover { background-color: #d97706; }
+    .del-btn { background-color: #ef4444; } .del-btn:hover { background-color: #dc2626; }
   </style>
 </head>
 <body>
@@ -142,7 +146,7 @@
         <button id="save-btn" onclick="handleSaveMemo()">메모 저장하기</button>
       </div>
 
-      <!-- 메모 목록 -->
+      <!-- 메모 목록 (바둑판 배열) -->
       <div id="memo-list" class="memo-grid"></div>
     </div>
   </div>
@@ -155,9 +159,11 @@
         <h2 id="modal-title" style="word-break: break-all; font-size: 22px;">제목</h2>
         <div id="modal-date" style="font-size:12px; color:#9ca3af; margin-top:4px;">날짜</div>
       </div>
+      
       <div class="modal-scroll-area">
         <img id="modal-img" class="modal-img hidden" src="" alt="첨부 이미지">
         <div id="modal-body" class="modal-body">내용</div>
+        
         <div class="modal-actions">
           <button class="edit-btn" onclick="openEditMode()">수정</button>
           <button class="del-btn" onclick="deleteMemo()">삭제</button>
@@ -167,8 +173,8 @@
   </div>
 
   <script>
-    // ⚠️ 본인의 새로운 구글 웹 앱 URL을 꼭 입력하세요!
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbygkm5-wLjGMgxvfWA41mZEqgDP0B9s3qbVaPDQfaogbZYbJZ5DGHAfCPJRPKffjs0YNg/exec";
+    // ⚠️ [중요] 새로 배포해서 발급된 구글 웹 앱 URL 주소를 아래에 새로 넣어주세요!
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxtf38aTFOStzJkVRQT9BosbF8fX1AN2oZ2L9KGonyMCeadSF-zjEQ_I-FI7ctbwoKgaA/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
     let cachedMemos = [];
@@ -197,17 +203,15 @@
       }
     }
 
-    // [핵심] 안전하게 백엔드와 통신하고 텍스트 스트링을 JSON으로 확실히 풀어내는 함수
+    // 표준 통신 백엔드 호출기 (JSON 직접 파싱 대응)
     async function callBackend(action, payload) {
       const response = await fetch(GAS_URL, {
         method: "POST",
         mode: "cors",
-        redirect: "follow",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        headers: { "Content-Type": "text/plain" },
         body: JSON.stringify({ action, payload })
       });
-      const textData = await response.text(); // 텍스트로 먼저 안전하게 받음
-      return JSON.parse(textData); // 프론트단에서 파싱 진행
+      return await response.json();
     }
 
     // 회원가입
@@ -229,12 +233,12 @@
           toggleAuthMode(false);
         }
       } catch (err) {
-        console.error(err);
-        alert("회원가입 중 에러가 발생했습니다.");
+        console.error("회원가입 트래킹 실패:", err);
+        alert("회원가입 요청 도중 에러가 발생했습니다. Apps Script 배포 버전을 새로 빌드하셨는지 확인해 주세요.");
       }
     }
 
-    // 로그인 - 이제 userId가 절대 undefined로 나오지 않습니다.
+    // 로그인
     async function handleLogin() {
       const id = document.getElementById("login-id").value;
       const password = document.getElementById("login-pw").value;
@@ -245,14 +249,14 @@
         const result = await callBackend("login", { id, password });
         if (result.success) {
           sessionStorage.setItem("isLoggedIn", "true");
-          sessionStorage.setItem("loginUserId", result.userId); // 데이터 정확히 세팅
+          sessionStorage.setItem("loginUserId", result.userId);
           showMemoSection();
         } else {
           alert(result.message);
         }
       } catch (err) {
-        console.error(err);
-        alert("로그인 중 에러가 발생했습니다.");
+        console.error("로그인 트래킹 실패:", err);
+        alert("로그인 요청 도중 에러가 발생했습니다.");
       }
     }
 
@@ -269,7 +273,7 @@
       document.getElementById("signup-section").classList.add("hidden");
       document.getElementById("memo-section").classList.remove("hidden");
       
-      const userId = sessionStorage.getItem("loginUserId");
+      const userId = sessionStorage.getItem("loginUserId") || "사용자";
       document.getElementById("user-display").innerText = `👤 ${userId}님 환영합니다!`;
       
       loadMemos();
@@ -291,6 +295,7 @@
       }
     }
 
+    // 메모 저장/수정
     async function handleSaveMemo() {
       const title = document.getElementById("memo-title").value;
       const content = document.getElementById("memo-content").value;
@@ -316,7 +321,7 @@
           const imgData = await imgRes.json();
           if (imgData.success) imageUrl = imgData.data.url;
         } catch (e) {
-          console.error(e);
+          console.error("이미지 업로드 오류:", e);
         }
       }
 
@@ -342,12 +347,13 @@
       }
     }
 
+    // 메모 목록 로드 (로딩 스피너)
     async function loadMemos() {
       const listContainer = document.getElementById("memo-list");
       listContainer.innerHTML = `
         <div class="loader-container">
           <div class="spinner"></div>
-          <div style="font-size: 14px; color: #6b7280;">메모를 안전하게 가져오는 중...</div>
+          <div style="font-size: 14px; color: #6b7280;">메모 데이터를 안전하게 가져오는 중...</div>
         </div>
       `;
 
@@ -383,6 +389,7 @@
           });
         }
       } catch (e) {
+        console.error("로드 오류:", e);
         listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align:center; padding: 20px;'>메모를 불러오지 못했습니다.</p>";
       }
     }
@@ -425,7 +432,7 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // 삭제 기능 확실하게 매핑 완료
+    // 메모 삭제
     async function deleteMemo() {
       if(!currentSelectedMemo) return;
       if(!confirm("이 메모를 정말 삭제하시겠습니까?")) return;
@@ -438,6 +445,7 @@
           loadMemos();
         }
       } catch(e) {
+        console.error("삭제 실패:", e);
         alert("삭제 중 오류가 발생했습니다.");
       }
     }
