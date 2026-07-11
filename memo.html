@@ -54,7 +54,9 @@
     .memo-info { padding: 14px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
     .memo-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .memo-preview { font-size: 13px; color: #6b7280; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; line-height: 1.4; }
-    .memo-date { font-size: 11px; color: #9ca3af; text-align: right; }
+    
+    .memo-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #9ca3af; }
+    .memo-writer { font-weight: 600; color: #6b7280; }
 
     /* Loader */
     .loader-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; gap: 12px; }
@@ -62,7 +64,7 @@
     .btn-spinner { width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* Modal (상세보기 및 수정 팝업) */
+    /* Modal */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
     .modal-content { background: #fff; width: 100%; max-width: 500px; border-radius: 12px; position: relative; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
     
@@ -83,7 +85,7 @@
 </head>
 <body>
 
-  <div class="version-badge">v1.4.0</div>
+  <div class="version-badge">v1.5.0</div>
 
   <div class="container">
     <!-- 1. 로그인 섹션 -->
@@ -133,7 +135,7 @@
         </div>
       </div>
 
-      <!-- 메모 작성 폼 (순수 등록 기능만 담당) -->
+      <!-- 메모 작성 폼 -->
       <div id="memo-form-card" class="card hidden">
         <h3 style="margin-bottom:12px; color:var(--primary-color);">새 메모 작성</h3>
         <div class="input-group">
@@ -162,12 +164,17 @@
       <div class="modal-header">
         <button class="modal-close" onclick="closeModal('detail-modal')">×</button>
         <h2 id="modal-title" style="word-break: break-all; font-size: 22px;">제목</h2>
-        <div id="modal-date" style="font-size:12px; color:#9ca3af; margin-top:4px;">날짜</div>
+        <div id="modal-detail-meta" style="font-size:12px; color:#9ca3af; margin-top:4px;">
+          <span id="modal-writer" style="font-weight:bold; color:#4b5563; margin-right:8px;">작성자</span>
+          <span id="modal-date">날짜</span>
+        </div>
       </div>
       <div class="modal-scroll-area">
         <img id="modal-img" class="modal-img hidden" src="" alt="첨부 이미지">
         <div id="modal-body" class="modal-body">내용</div>
-        <div class="modal-actions">
+        
+        <!-- 권한 체크에 따라 본인 창에만 보일 기능 버튼 영역 -->
+        <div id="modal-action-buttons" class="modal-actions">
           <button class="edit-btn" onclick="openEditModal()">수정</button>
           <button class="del-btn" onclick="deleteMemo()">삭제</button>
         </div>
@@ -175,7 +182,7 @@
     </div>
   </div>
 
-  <!-- 5. 별도의 수정 전용 팝업 모달 (새로 추가됨) -->
+  <!-- 5. 별도의 수정 전용 팝업 모달 -->
   <div id="edit-modal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -202,8 +209,8 @@
   </div>
 
   <script>
-    // ⚠️ 구글 웹 앱 URL 주소를 넣어주세요.
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzCVjxV5UzLVMsmPoqLMMu_Xz0Z1CDZ4FDWWGms0MP5ySJKBgAh2iBGY53kEmmUctjx/exec";
+    // ⚠️ 본인의 구글 웹 앱 URL 주소를 넣어주세요.
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyffQBU5zesglH2D20hgXCNHP19wsYrOeKYDNDo5brUhSqFCGmdIkrlVatl4SUkMQCG/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
     let cachedMemos = [];
@@ -330,12 +337,13 @@
       }
     }
 
-    // 신규 작성 저장 기능
+    // 새 메모 저장 (현재 로그인한 유저 ID를 writer 파라미터에 실어서 전송)
     async function handleSaveMemo() {
       const title = document.getElementById("memo-title").value;
       const content = document.getElementById("memo-content").value;
       const imageFile = document.getElementById("memo-image").files[0];
       const saveBtn = document.getElementById("save-btn");
+      const currentWriter = sessionStorage.getItem("loginUserId");
 
       if (!title || !content) return alert("제목과 내용을 입력해주세요.");
 
@@ -360,7 +368,7 @@
       }
 
       try {
-        const result = await callBackend("addMemo", { title, content, imageUrl });
+        const result = await callBackend("addMemo", { title, content, imageUrl, writer: currentWriter });
         if (result.success) {
           document.getElementById("memo-form-card").classList.add("hidden");
           loadMemos();
@@ -375,20 +383,21 @@
       }
     }
 
-    // [수정 전용 팝업 창 함수] 수정 프로세스 처리
+    // 메모 수정 요청 처리 (writer 정보 전송하여 백엔드 검증 유도)
     async function handleUpdateMemo() {
       const editId = document.getElementById("edit-memo-id").value;
       const title = document.getElementById("edit-memo-title").value;
       const content = document.getElementById("edit-memo-content").value;
       const imageFile = document.getElementById("edit-memo-image").files[0];
       const updateBtn = document.getElementById("update-btn");
+      const currentWriter = sessionStorage.getItem("loginUserId");
 
       if (!title || !content) return alert("제목과 내용을 입력해주세요.");
 
       updateBtn.innerHTML = `<span class="btn-spinner"></span> 수정 중...`;
       updateBtn.disabled = true;
 
-      let imageUrl = undefined; // 파일 선택 안 하면 기존 이미지 유지용 undefined
+      let imageUrl = undefined; 
 
       if (imageFile) {
         const formData = new FormData();
@@ -406,7 +415,7 @@
       }
 
       try {
-        const result = await callBackend("updateMemo", { id: editId, title, content, imageUrl });
+        const result = await callBackend("updateMemo", { id: editId, title, content, imageUrl, writer: currentWriter });
         if (result.success) {
           closeModal("edit-modal");
           loadMemos();
@@ -421,6 +430,7 @@
       }
     }
 
+    // 메모 목록 로드 및 작성자 정보 바인딩
     async function loadMemos() {
       const listContainer = document.getElementById("memo-list");
       listContainer.innerHTML = `
@@ -451,6 +461,7 @@
             if (memo.createdAt) {
               dateText = memo.createdAt.includes(" ") ? memo.createdAt.split(" ")[0] : memo.createdAt;
             }
+            let writerText = memo.writer && memo.writer !== "undefined" ? memo.writer : "익명";
 
             card.innerHTML = `
               ${imgHTML}
@@ -459,7 +470,10 @@
                   <div class="memo-title">${escapeHtml(memo.title)}</div>
                   <div class="memo-preview">${escapeHtml(memo.content)}</div>
                 </div>
-                <div class="memo-date">${dateText}</div>
+                <div class="memo-meta">
+                  <span class="memo-writer">작성자: ${escapeHtml(writerText)}</span>
+                  <span class="memo-date">${dateText}</span>
+                </div>
               </div>
             `;
             listContainer.appendChild(card);
@@ -471,12 +485,17 @@
       }
     }
 
+    // 상세 내용 열기 + 작성자 비교 권한 분기 적용
     function openModal(index) {
       currentSelectedMemo = cachedMemos[index];
+      const currentUser = sessionStorage.getItem("loginUserId");
       
       document.getElementById("modal-title").innerText = currentSelectedMemo.title;
-      document.getElementById("modal-date").innerText = currentSelectedMemo.createdAt;
       document.getElementById("modal-body").innerText = currentSelectedMemo.content;
+      document.getElementById("modal-date").innerText = currentSelectedMemo.createdAt;
+      
+      let displayWriter = currentSelectedMemo.writer && currentSelectedMemo.writer !== "undefined" ? currentSelectedMemo.writer : "익명";
+      document.getElementById("modal-writer").innerText = `작성자: ${displayWriter}`;
       
       const modalImg = document.getElementById("modal-img");
       if (currentSelectedMemo.imageUrl) {
@@ -486,19 +505,26 @@
         modalImg.classList.add("hidden");
       }
       
+      // 🔐 [권한 분기 핵심] 로그인 유저와 메모 작성자가 같을 때만 수정/삭제 버튼 노출
+      const actionButtons = document.getElementById("modal-action-buttons");
+      if (String(currentUser).trim() === String(currentSelectedMemo.writer).trim()) {
+        actionButtons.classList.remove("hidden");
+      } else {
+        actionButtons.classList.add("hidden");
+      }
+      
       document.getElementById("detail-modal").classList.remove("hidden");
       document.querySelector("#detail-modal .modal-scroll-area").scrollTop = 0;
     }
 
-    // 수정 버튼 클릭 시 별도의 독립 수정 팝업 창 열기
     function openEditModal() {
       if(!currentSelectedMemo) return;
-      closeModal("detail-modal"); // 상세보기 창 닫기
+      closeModal("detail-modal"); 
       
       document.getElementById("edit-memo-id").value = currentSelectedMemo.id;
       document.getElementById("edit-memo-title").value = currentSelectedMemo.title;
       document.getElementById("edit-memo-content").value = currentSelectedMemo.content;
-      document.getElementById("edit-memo-image").value = ""; // 파일명 리셋
+      document.getElementById("edit-memo-image").value = ""; 
 
       document.getElementById("edit-modal").classList.remove("hidden");
       document.querySelector("#edit-modal .modal-scroll-area").scrollTop = 0;
@@ -508,12 +534,15 @@
       document.getElementById(modalId).classList.add("hidden");
     }
 
+    // 메모 삭제 요청 처리 (writer 정보 전송하여 백엔드 검증 유도)
     async function deleteMemo() {
       if(!currentSelectedMemo) return;
       if(!confirm("이 메모를 정말 삭제하시겠습니까?")) return;
 
+      const currentWriter = sessionStorage.getItem("loginUserId");
+
       try {
-        const result = await callBackend("deleteMemo", { id: currentSelectedMemo.id });
+        const result = await callBackend("deleteMemo", { id: currentSelectedMemo.id, writer: currentWriter });
         alert(result.message);
         if(result.success) {
           closeModal("detail-modal");
