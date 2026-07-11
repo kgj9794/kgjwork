@@ -114,29 +114,25 @@
       margin: 0 auto;
     }
 
-    /* 🎬 [핵심 추가] 로그인 성공 단계 비행 트랜지션 효과 연출 프레임 */
+    /* 🎬 비행 애니메이션 트랜지션 클래스 */
     .view-panel {
       position: relative;
       width: 100%;
       transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.5s ease;
     }
-    /* 로그아웃 및 숨김 기본 대기 상태 */
     .view-panel.hidden {
       display: none !important;
       opacity: 0;
     }
-    /* 🚀 로그인창 위로 비행 이탈 타겟 */
     .view-panel.fly-up {
       transform: translateY(-120vh);
       opacity: 0;
     }
-    /* 🚀 리스트 아래에서 위로 비행 안착 대기 타겟 */
     .view-panel.prepare-up {
       display: block !important;
       transform: translateY(100vh);
       opacity: 0;
     }
-    /* 🚀 연동 완착 메인 완료 프레임 */
     .view-panel.active-main {
       transform: translateY(0);
       opacity: 1;
@@ -194,7 +190,7 @@
     button:active { transform: translateY(1px); }
     button:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
 
-    /* 🛠️ [개선] 계정 만들기 및 뒤로가기 서브 버튼 아담하게 크기 정밀 축소화 */
+    /* 🛠️ 서브 버튼 (계정 만들기, 뒤로 가기) 디자인 축소 및 깔끔화 */
     .sub-btn { 
       width: auto;
       margin: 12px auto 0 auto;
@@ -208,7 +204,7 @@
     }
     .sub-btn:hover { background: rgba(255, 255, 255, 0.25); color: var(--text-color); box-shadow: none; }
 
-    /* 상단 고정 바 */
+    /* 상단 헤더 바 */
     .header-bar { 
       position: sticky;
       top: 12px;
@@ -238,19 +234,15 @@
     .logout-btn { width: auto; padding: 8px 12px; background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); font-size: 12px; border-radius: 8px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
     .logout-btn:hover { opacity: 0.9; box-shadow: 0 6px 14px rgba(239, 68, 68, 0.35); }
 
-    /* 플로팅 버튼 */
+    /* FAB 플로팅 작성 버튼 */
     .fab-btn { position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; border: none; font-size: 32px; font-weight: 300; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35); cursor: pointer; transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 900; }
     .fab-btn:hover { box-shadow: 0 10px 24px rgba(16, 185, 129, 0.5); transform: scale(1.08) rotate(90deg); }
     .fab-btn:active { transform: scale(0.95); }
 
-    /* 데스크탑 그리드 최적화 */
+    /* 카드 그리드 */
     .memo-grid { display: grid; grid-template-columns: 1fr; gap: 18px; width: 100%; }
-    @media (min-width: 600px) {
-      .memo-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (min-width: 900px) {
-      .memo-grid { grid-template-columns: repeat(3, 1fr); } 
-    }
+    @media (min-width: 600px) { .memo-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 900px) { .memo-grid { grid-template-columns: repeat(3, 1fr); } }
     
     .memo-card { 
       background: var(--card-glass); 
@@ -282,13 +274,13 @@
 
     .private-badge { background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: bold; display: inline-block; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2); }
 
-    /* 로딩 스피너 */
+    /* 로딩 로더 */
     .loader-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0; gap: 12px; }
     .spinner { width: 36px; height: 36px; border: 4px solid rgba(99, 102, 241, 0.1); border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
     .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, 0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* 리퀴드 글래스 모달 */
+    /* 모달 팝업 */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; opacity: 0; transition: opacity 0.25s ease; }
     .modal.active { display: flex !important; opacity: 1; }
     
@@ -314,7 +306,6 @@
     .modal-header { padding: 20px 24px 14px 24px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--card-border); gap: 16px; }
     .modal-header-title-box { flex-grow: 1; }
     
-    /* 🛠️ [복구 완료] 늘어나지 않는 엄밀한 정사각형/원형 X 닫기 버튼 */
     .modal-close { 
       width: 32px !important; 
       height: 32px !important; 
@@ -351,10 +342,9 @@
 </head>
 <body>
 
-  <div class="version-badge">v2.2.0</div>
+  <div class="version-badge">v2.2.1</div>
 
   <div class="container">
-    <!-- 1. 로그인 패널 영역 -->
     <div id="login-section" class="view-panel card">
       <h2>메모장 로그인</h2>
       <div class="input-group">
@@ -369,7 +359,6 @@
       <button class="sub-btn" onclick="toggleAuthMode(true)">계정 만들기</button>
     </div>
 
-    <!-- 2. 회원가입 패널 영역 -->
     <div id="signup-section" class="view-panel card hidden">
       <h2>계정 생성</h2>
       <div class="input-group">
@@ -388,7 +377,6 @@
       <button class="sub-btn" onclick="toggleAuthMode(false)">뒤로 가기</button>
     </div>
 
-    <!-- 3. 메모장 메인 목록 패널 영역 -->
     <div id="memo-section" class="view-panel hidden">
       <div class="header-bar">
         <h2>나만의 메모장</h2>
@@ -404,7 +392,6 @@
 
   <button id="fab-write-btn" class="fab-btn hidden" onclick="openModal('write-modal')">+</button>
 
-  <!-- 4. 새 메모 작성 전용 팝업 창 모달 -->
   <div id="write-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -435,7 +422,6 @@
     </div>
   </div>
 
-  <!-- 5. 상세 보기 팝업 모달 -->
   <div id="detail-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -460,7 +446,6 @@
     </div>
   </div>
 
-  <!-- 6. 별도의 수정 전용 팝업 모달 -->
   <div id="edit-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -493,8 +478,8 @@
   </div>
 
   <script>
-    // ⚠️ 본인의 새로운 구글 POST용 웹 앱 URL 주소를 아래에 세팅해 주세요.
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbySa62AzB3stSZ11qv6DcLpkVigl1cqrEC2NtFdM9E_Bnc-9fu08JDh_Ap_ZCPxj6up/exec";
+    // 💡 [원복 완료] 안정적인 doGet(GET) 방식을 구동할 앱스크립트 URL
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyHXd5ygKPdD6XwicfAt7TNqAF9vV53XvmVNgosRrWkMfd5Spmq2PtaH7fgwh5ngwIO/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
     let cachedMemos = [];
@@ -507,7 +492,6 @@
       }
 
       if (sessionStorage.getItem("isLoggedIn") === "true") {
-        // 자동로그인 세션 유지시에는 트랜지션 없이 목록 강제 노출
         document.getElementById("login-section").classList.add("hidden");
         const memoSec = document.getElementById("memo-section");
         memoSec.classList.remove("hidden");
@@ -551,18 +535,12 @@
       }
     }
 
-    // 💡 [개선] 대용량 수용을 위해 규격 제한이 없는 POST 비동기 요청 본문 구조로 전면 전환
+    // 💡 [원복 완료] 백엔드 연동 전용 GET JSONP / URL 파라미터 호출 함수
     async function callBackend(action, payload) {
-      const targetUrl = GAS_URL;
-      const bodyData = JSON.stringify({ action, payload });
-      
-      const response = await fetch(targetUrl, { 
-        method: "POST", 
-        headers: { "Content-Type": "text/plain" }, // CORS 사전차단(Preflight) 우회를 위해 text/plain 규격 사용
-        body: bodyData 
-      });
-      const textData = await response.text(); 
-      return JSON.parse(textData); 
+      const jsonString = JSON.stringify({ action, payload });
+      const targetUrl = `${GAS_URL}?data=${encodeURIComponent(jsonString)}`;
+      const response = await fetch(targetUrl);
+      return await response.json();
     }
 
     async function handleSignup() {
@@ -612,7 +590,7 @@
           sessionStorage.setItem("loginUserId", result.userId); 
           sessionStorage.setItem("isAdmin", result.isAdmin === true ? "true" : "false"); 
           
-          // 🎬 [애니메이션 실행] 로그인 창은 위로 날아가고 목록 창은 아래에서 위로 날아오게 트리거 실행
+          // 🎬 시네마틱 비행 애니메이션 연출
           const loginSec = document.getElementById("login-section");
           const memoSec = document.getElementById("memo-section");
           
@@ -622,7 +600,6 @@
           setTimeout(() => {
             loginSec.classList.add("hidden");
             memoSec.classList.remove("hidden");
-            // 안착 트랜지션 구동
             setTimeout(() => {
               memoSec.classList.add("active-main");
               document.getElementById("fab-write-btn").classList.remove("hidden");
@@ -650,7 +627,6 @@
       const loginSec = document.getElementById("login-section");
       const memoSec = document.getElementById("memo-section");
       
-      // 상태 복구 리셋
       memoSec.classList.remove("active-main");
       memoSec.classList.add("hidden");
       loginSec.classList.remove("fly-up", "hidden");
