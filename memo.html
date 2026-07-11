@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <link rel="icon" href="/memofavicon.ico" type="image/x-icon">
+<link rel="shortcut icon" href="/memofavicon.ico" type="image/x-icon">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>나만의 메모장</title>
@@ -75,222 +77,84 @@
       --header-bg: rgba(238, 242, 247, 0.65);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    
-    /* 🛠️ 전체 화면 절대 고정 (불필요한 전체 스크롤 완전 제거) */
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-    
-    body { 
-      background: var(--bg-gradient);
-      color: var(--text-color); 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      padding: 0; 
-      position: relative;
-      transition: background 0.3s ease, color 0.3s ease;
-    }
-
-    body::before, body::after {
-      content: ""; position: fixed; width: 350px; height: 350px; border-radius: 50%; filter: blur(90px); z-index: -1; opacity: 0.7; transition: background 0.3s ease;
-    }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    body { background: var(--bg-gradient); color: var(--text-color); display: flex; justify-content: center; align-items: center; padding: 0; position: relative; transition: background 0.3s ease, color 0.3s ease; }
+    body::before, body::after { content: ""; position: fixed; width: 350px; height: 350px; border-radius: 50%; filter: blur(90px); z-index: -1; opacity: 0.7; transition: background 0.3s ease; }
     body::before { top: -60px; left: -60px; background: var(--bg-blob-1); }
     body::after { bottom: -60px; right: -60px; background: var(--bg-blob-2); }
 
-    /* 컨테이너 규격 반응형 고정 아키텍처 */
-    .container { 
-      width: 100%; 
-      max-width: 900px; 
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 10; 
-      position: relative; 
-    }
-    
-    .card { 
-      background: var(--card-glass); 
-      backdrop-filter: blur(20px) saturate(180%); 
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      padding: 28px; 
-      border-radius: 24px; 
-      border: 1px solid var(--card-border);
-      box-shadow: 0 10px 32px 0 rgba(0, 0, 0, 0.08); 
-      transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-    }
+    .container { width: 100%; max-width: 900px; height: 100%; display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10; position: relative; }
+    .card { background: var(--card-glass); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); padding: 28px; border-radius: 24px; border: 1px solid var(--card-border); box-shadow: 0 10px 32px 0 rgba(0, 0, 0, 0.08); transition: all 0.5s cubic-bezier(0.76, 0, 0.24, 1); }
 
-    #login-section, #signup-section {
-      width: 100%;
-      max-width: 420px;
-    }
+    #login-section, #signup-section { width: 100%; max-width: 420px; }
 
-    /* 🎬 패널 비행 트랜지션 인터페이스 구조 */
-    .view-panel {
-      position: relative;
-      transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.5s ease;
-    }
-    .view-panel.hidden {
-      display: none !important;
-      opacity: 0;
-    }
-    .view-panel.fly-up {
-      transform: translateY(-120vh);
-      opacity: 0;
-    }
-    .view-panel.prepare-up {
-      display: flex !important;
-      flex-direction: column;
-      transform: translateY(100vh);
-      opacity: 0;
-      width: 100%;
-      height: 100%;
-    }
-    .view-panel.active-main {
-      transform: translateY(0);
-      opacity: 1;
-      width: 100%;
-      height: 100%;
-      display: flex !important;
-      flex-direction: column;
-    }
+    /* 패널 비행 트랜지션 클래스 */
+    .view-panel { position: relative; transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.5s ease; }
+    .view-panel.hidden { display: none !important; opacity: 0; }
+    .view-panel.fly-up { transform: translateY(-120vh); opacity: 0; }
+    .view-panel.prepare-up { display: flex !important; flex-direction: column; transform: translateY(100vh); opacity: 0; width: 100%; height: 100%; }
+    .view-panel.active-main { transform: translateY(0); opacity: 1; width: 100%; height: 100%; display: flex !important; flex-direction: column; }
+    .view-panel.fly-down { transform: translateY(100vh); opacity: 0; }
     
     h2 { margin-bottom: 18px; color: var(--primary-color); font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
-    
     .input-group { margin-bottom: 14px; }
     .input-group label { display: block; font-size: 13px; margin-bottom: 4px; font-weight: 600; color: var(--text-muted); }
-    
-    .input-group input, .input-group textarea { 
-      width: 100%; 
-      padding: 12px 14px; 
-      border: 1px solid var(--input-border); 
-      border-radius: 12px; 
-      font-size: 14px; 
-      background: var(--input-bg);
-      backdrop-filter: blur(5px);
-      color: var(--text-color);
-      transition: all 0.25s ease; 
-    }
-    .input-group input:focus, .input-group textarea:focus { 
-      outline: none; 
-      border-color: var(--primary-color); 
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-    }
+    .input-group input, .input-group textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--input-border); border-radius: 12px; font-size: 14px; background: var(--input-bg); backdrop-filter: blur(5px); color: var(--text-color); transition: all 0.25s ease; }
+    .input-group input:focus, .input-group textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); }
     .input-group textarea { resize: vertical; height: 140px; }
 
     .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; cursor: pointer; }
     .checkbox-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary-color); cursor: pointer; }
     .checkbox-group label { font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer; }
 
-    button { 
-      width: 100%; 
-      padding: 14px; 
-      background: var(--primary-gradient);
-      color: white; 
-      border: none; 
-      border-radius: 12px; 
-      font-weight: 600; 
-      cursor: pointer; 
-      transition: all 0.25s ease; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      gap: 8px; 
-      font-size: 15px; 
-      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
-    }
-    button:hover { 
-      opacity: 0.92;
-      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
-      transform: translateY(-1px);
-    }
+    button { width: 100%; padding: 14px; background: var(--primary-gradient); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25); }
+    button:hover { opacity: 0.92; box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35); transform: translateY(-1px); }
     button:active { transform: translateY(1px); }
     button:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
 
-    .sub-btn { 
-      width: auto;
-      margin: 12px auto 0 auto;
-      padding: 8px 16px; 
-      background: rgba(255, 255, 255, 0.12); 
-      color: var(--text-muted); 
-      border: 1px solid var(--card-border); 
-      font-size: 12px; 
-      border-radius: 8px;
-      box-shadow: none;
-      display: block;
-    }
+    .sub-btn { width: auto; margin: 12px auto 0 auto; padding: 8px 16px; background: rgba(255, 255, 255, 0.12); color: var(--text-muted); border: 1px solid var(--card-border); font-size: 12px; border-radius: 8px; box-shadow: none; display: block; }
     .sub-btn:hover { background: rgba(255, 255, 255, 0.25); color: var(--text-color); box-shadow: none; }
 
-    /* 상단 메뉴바 고정 배치 */
-    .header-bar { 
-      flex-shrink: 0;
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      margin-bottom: 16px; 
-      padding: 14px 20px; 
-      background: var(--header-bg);
-      backdrop-filter: blur(25px) saturate(180%);
-      -webkit-backdrop-filter: blur(25px) saturate(180%);
-      border-radius: 18px;
-      border: 1px solid var(--card-border);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-    }
-    .header-bar h2 { margin-bottom: 0; color: var(--text-color); font-size: 18px; }
-    .header-right { display: flex; align-items: center; gap: 10px; }
-    .user-greeting { font-size: 14px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+    /* 상단 메뉴바 */
+    .header-bar { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 14px 20px; background: var(--header-bg); backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%); border-radius: 18px; border: 1px solid var(--card-border); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
     
-    .theme-toggle-btn {
-      width: auto; padding: 8px 12px; background: rgba(255,255,255,0.2); color: var(--text-color);
-      border: 1px solid var(--card-border); font-size: 12px; border-radius: 8px; box-shadow: none;
+    /* 🛠️ [개선] 로고틀 결합형 타이틀 구성부 */
+    .header-title-area { display: flex; align-items: center; gap: 10px; }
+    .header-bar h2 { margin-bottom: 0; color: var(--text-color); font-size: 18px; }
+    
+    /* 🎨 [신규] 순수 CSS 입체 유리광택 메모장 로고 오브젝트 */
+    .app-logo {
+      width: 22px; height: 24px; background: var(--primary-gradient); border-radius: 5px; position: relative; box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3); flex-shrink: 0;
     }
-    .theme-toggle-btn:hover { background: rgba(255,255,255,0.35); }
+    .app-logo::before {
+      content: ""; position: absolute; top: 4px; left: 4px; right: 4px; height: 2px; background: rgba(255,255,255,0.6); border-radius: 1px;
+    }
+    .app-logo::after {
+      content: ""; position: absolute; top: 9px; left: 4px; right: 8px; height: 2px; background: rgba(255,255,255,0.4); border-radius: 1px;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    
+    /* 🛠️ [개선] 유저 네임 닉네임 라벨 서체 12px 아담화 크기 축소 조율 */
+    .user-greeting { font-size: 12px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+    
+    .theme-toggle-btn { width: 36px; height: 36px; padding: 0; background: rgba(255,255,255,0.2); color: var(--text-color); border: 1px solid var(--card-border); font-size: 16px; border-radius: 10px; box-shadow: none; display: flex; align-items: center; justify-content: center; }
+    .theme-toggle-btn:hover { background: rgba(255,255,255,0.35); transform: rotate(15deg); }
 
     .logout-btn { width: auto; padding: 8px 12px; background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); font-size: 12px; border-radius: 8px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
     .logout-btn:hover { opacity: 0.9; box-shadow: 0 6px 14px rgba(239, 68, 68, 0.35); }
 
-    /* 플로팅 버튼 */
-    .fab-btn { position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; border: none; font-size: 32px; font-weight: 300; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35); cursor: pointer; transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 900; }
+    .fab-btn { display: none; position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; border: none; font-size: 32px; font-weight: 300; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35); cursor: pointer; transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 900; }
     .fab-btn:hover { box-shadow: 0 10px 24px rgba(16, 185, 129, 0.5); transform: scale(1.08) rotate(90deg); }
     .fab-btn:active { transform: scale(0.95); }
 
-    /* 🛠️ [개선] 메모 리스트 컨테이너 독립 스크롤 아키텍처 연동 */
-    .memo-list-wrapper {
-      flex-grow: 1;
-      overflow-y: auto;
-      width: 100%;
-      padding-bottom: 80px; /* FAB 여백 확보 */
-      -webkit-overflow-scrolling: touch;
-    }
-
+    .memo-list-wrapper { flex-grow: 1; overflow-y: auto; width: 100%; padding-bottom: 80px; -webkit-overflow-scrolling: touch; }
     .memo-grid { display: grid; grid-template-columns: 1fr; gap: 18px; width: 100%; }
     @media (min-width: 600px) { .memo-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (min-width: 900px) { .memo-grid { grid-template-columns: repeat(3, 1fr); } }
     
-    .memo-card { 
-      background: var(--card-glass); 
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      border-radius: 18px; 
-      border: 1px solid var(--card-border); 
-      overflow: hidden; 
-      cursor: pointer; 
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
-      display: flex; 
-      flex-direction: column; 
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
-    }
-    .memo-card:hover { 
-      background: var(--card-glass-hover); 
-      border-color: rgba(255, 255, 255, 0.8);
-      transform: translateY(-4px); 
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1); 
-    }
+    .memo-card { background: var(--card-glass); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 18px; border: 1px solid var(--card-border); overflow: hidden; cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03); }
+    .memo-card:hover { background: var(--card-glass-hover); border-color: rgba(255, 255, 255, 0.8); transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1); }
     
     .memo-thumb { width: 100%; height: 140px; object-fit: cover; background: rgba(255, 255, 255, 0.1); }
     .memo-info { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; }
@@ -302,57 +166,21 @@
 
     .private-badge { background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: bold; display: inline-block; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2); }
 
-    /* 로딩 기어 */
     .loader-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0; gap: 12px; }
     .spinner { width: 36px; height: 36px; border: 4px solid rgba(99, 102, 241, 0.1); border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
     .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, 0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* 리퀴드 글래스 모달 */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; opacity: 0; transition: opacity 0.25s ease; }
     .modal.active { display: flex !important; opacity: 1; }
     
-    .modal-content { 
-      background: var(--modal-glass); 
-      backdrop-filter: blur(30px) saturate(190%);
-      -webkit-backdrop-filter: blur(30px) saturate(190%);
-      width: 100%; 
-      max-width: 520px; 
-      border-radius: 24px; 
-      position: relative; 
-      max-height: 85vh; 
-      display: flex; 
-      flex-direction: column; 
-      overflow: hidden; 
-      border: 1px solid var(--card-border);
-      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15); 
-      transform: scale(0.9); 
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); 
-    }
+    .modal-content { background: var(--modal-glass); backdrop-filter: blur(30px) saturate(190%); -webkit-backdrop-filter: blur(30px) saturate(190%); width: 100%; max-width: 520px; border-radius: 24px; position: relative; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--card-border); box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15); transform: scale(0.9); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
     .modal.active .modal-content { transform: scale(1); }
     
     .modal-header { padding: 20px 24px 14px 24px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--card-border); gap: 16px; }
     .modal-header-title-box { flex-grow: 1; }
     
-    /* 🛠️ [개선 완벽 적용] 고정 정사각형 라인 기반 동기화 닫기 버튼 */
-    .modal-close { 
-      width: 32px !important; 
-      height: 32px !important; 
-      min-width: 32px; 
-      padding: 0 !important; 
-      font-size: 20px; 
-      border: none; 
-      background: rgba(255, 255, 255, 0.15); 
-      cursor: pointer; 
-      color: var(--text-color); 
-      display: flex !important; 
-      align-items: center; 
-      justify-content: center; 
-      border-radius: 50%; 
-      transition: all 0.2s; 
-      box-shadow: none;
-      flex-shrink: 0;
-    }
+    .modal-close { width: 32px !important; height: 32px !important; min-width: 32px; padding: 0 !important; font-size: 20px; border: none; background: rgba(255, 255, 255, 0.15); cursor: pointer; color: var(--text-color); display: flex !important; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; box-shadow: none; flex-shrink: 0; }
     .modal-close:hover { background: rgba(255, 255, 255, 0.35); transform: rotate(90deg); }
 
     .modal-scroll-area { padding: 18px 24px 24px 24px; overflow-y: auto; flex-grow: 1; }
@@ -366,12 +194,13 @@
     .del-btn { background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); } 
     .del-btn:hover { opacity: 0.9; box-shadow: 0 6px 14px rgba(239, 68, 68, 0.35); }
 
-    .version-badge { position: fixed; bottom: 8px; right: 8px; background-color: #1f2937; color: #ffffff; padding: 3px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; opacity: 0.4; z-index: 2000; pointer-events: none; }
+    /* 🛠️ [개선] 버전 뱃지 좌측 하단 재설정 및 스르륵 페이드 페이즈 레이어 구성 */
+    .version-badge { position: fixed; bottom: 8px; left: 8px; background-color: #1f2937; color: #ffffff; padding: 3px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; opacity: 0.4; z-index: 2000; pointer-events: none; transition: opacity 1.5s cubic-bezier(0.25, 1, 0.5, 1); }
   </style>
 </head>
 <body>
 
-  <div class="version-badge">v2.3.0</div>
+  <div id="app-version" class="version-badge">v2.5.0</div>
 
   <div class="container">
     <!-- 1. 로그인 패널 -->
@@ -408,26 +237,28 @@
       <button class="sub-btn" onclick="toggleAuthMode(false)">뒤로 가기</button>
     </div>
 
-    <!-- 3. 메모장 메인 목록 패널 (고정 헤더 + 하단 전용 독립 스크롤 스켈레톤 구현) -->
+    <!-- 3. 메모장 메인 목록 패널 -->
     <div id="memo-section" class="view-panel hidden">
       <div class="header-bar">
-        <h2>나만의 메모장</h2>
+        <!-- 🛠️ 로고 오브젝트를 내장한 타이틀 래핑 영역 -->
+        <div class="header-title-area">
+          <div class="app-logo"></div>
+          <h2>나만의 메모장</h2>
+        </div>
         <div class="header-right">
           <div id="user-display" class="user-greeting"></div>
-          <button class="theme-toggle-btn" onclick="toggleDarkMode()">테마 전환</button>
+          <button id="theme-icon-btn" class="theme-toggle-btn" onclick="toggleDarkMode()">☀️</button>
           <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
         </div>
       </div>
       
-      <!-- 🛠️ 이 스크롤 래퍼 내부에서만 리스트 스크롤이 작동하여 화면 밖으로 넘치지 않습니다 -->
       <div class="memo-list-wrapper">
         <div id="memo-list" class="memo-grid"></div>
       </div>
     </div>
   </div>
 
-  <!-- 🛠️ 로그인 화면에서는 hidden 클래스 부여로 원천 숨김 차단 처리 완료 -->
-  <button id="fab-write-btn" class="fab-btn hidden" onclick="openModal('write-modal')">+</button>
+  <button id="fab-write-btn" class="fab-btn" onclick="openModal('write-modal')">+</button>
 
   <!-- 4. 작성 모달 -->
   <div id="write-modal" class="modal">
@@ -474,7 +305,8 @@
         <button class="modal-close" onclick="closeModal('detail-modal')">×</button>
       </div>
       <div class="modal-scroll-area">
-        <img id="modal-img" class="modal-img hidden" src="" alt="첨부 이미지">
+        <!-- 🛠️ 스크립트단에서 다이내믹하게 은닉 및 표출을 제어할 타겟 -->
+        <img id="modal-img" class="modal-img hidden" src="" alt="">
         <div id="modal-body" class="modal-body">내용</div>
         
         <div id="modal-action-buttons" class="modal-actions">
@@ -518,6 +350,7 @@
   </div>
 
   <script>
+    // 🛠️ 지정해 주신 웹앱 수신 URL 반영 처리 완료
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyHXd5ygKPdD6XwicfAt7TNqAF9vV53XvmVNgosRrWkMfd5Spmq2PtaH7fgwh5ngwIO/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
@@ -529,13 +362,22 @@
       if (savedTheme) {
         document.body.classList.add(savedTheme);
       }
+      updateThemeIcon();
+
+      // 🛠️ [신규] 5초 뒤 버전 뱃지 스르륵 사라지는 타이머 연동
+      setTimeout(() => {
+        const badge = document.getElementById("app-version");
+        if(badge) {
+          badge.style.opacity = "0";
+        }
+      }, 5000);
 
       if (sessionStorage.getItem("isLoggedIn") === "true") {
         document.getElementById("login-section").classList.add("hidden");
         const memoSec = document.getElementById("memo-section");
         memoSec.classList.remove("hidden");
         memoSec.classList.add("active-main");
-        document.getElementById("fab-write-btn").classList.remove("hidden");
+        document.getElementById("fab-write-btn").style.display = "flex"; 
         showMemoSection();
       }
     };
@@ -555,6 +397,15 @@
         document.body.classList.add(newTheme);
         localStorage.setItem("appTheme", newTheme);
       }
+      updateThemeIcon();
+    }
+
+    function updateThemeIcon() {
+      const iconBtn = document.getElementById("theme-icon-btn");
+      if(!iconBtn) return;
+      const isDark = document.body.classList.contains("dark-theme") || 
+                     (!document.body.classList.contains("light-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      iconBtn.innerText = isDark ? "🌙" : "☀️";
     }
 
     function checkEnter(event, callback) {
@@ -639,7 +490,7 @@
             memoSec.classList.remove("hidden");
             setTimeout(() => {
               memoSec.classList.add("active-main");
-              document.getElementById("fab-write-btn").classList.remove("hidden"); // 🛠️ 로그인 완료 시점에만 + 노출
+              document.getElementById("fab-write-btn").style.display = "flex"; 
             }, 50);
             showMemoSection();
           }, 450);
@@ -656,7 +507,6 @@
       }
     }
 
-    // 🛠️ 로그아웃 시 플로팅 버튼 은닉 및 비행 애니메이션 타겟 완전 리셋
     function handleLogout() {
       sessionStorage.removeItem("isLoggedIn");
       sessionStorage.removeItem("loginUserId");
@@ -664,12 +514,26 @@
       
       const loginSec = document.getElementById("login-section");
       const memoSec = document.getElementById("memo-section");
+      const fabBtn = document.getElementById("fab-write-btn");
       
-      memoSec.classList.remove("active-main", "prepare-up");
-      memoSec.classList.add("hidden");
+      fabBtn.style.display = "none"; 
+      memoSec.classList.remove("active-main");
+      memoSec.classList.add("fly-down");
       
-      loginSec.classList.remove("fly-up", "hidden");
-      document.getElementById("fab-write-btn").classList.add("hidden"); // 🛠️ 로그아웃 즉시 + 완벽 제거
+      setTimeout(() => {
+        memoSec.classList.add("hidden");
+        memoSec.classList.remove("fly-down", "prepare-up");
+        
+        loginSec.style.transition = "none";
+        loginSec.style.transform = "translateY(-120vh)";
+        loginSec.classList.remove("hidden");
+        
+        setTimeout(() => {
+          loginSec.style.transition = "transform 0.5s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.5s ease";
+          loginSec.style.transform = "translateY(0)";
+          loginSec.style.opacity = "1";
+        }, 50);
+      }, 450);
     }
 
     function showMemoSection() {
@@ -852,6 +716,7 @@
       }
     }
 
+    // 🛠️ [개선] 상세보기 패널 바인딩 함수 내 이미지 조건부 렌더링 세밀화
     function openDetailModal(index) {
       currentSelectedMemo = cachedMemos[index];
       const currentUser = sessionStorage.getItem("loginUserId");
@@ -866,12 +731,14 @@
       let displayWriter = currentSelectedMemo.writer && currentSelectedMemo.writer !== "undefined" ? currentSelectedMemo.writer : "익명";
       document.getElementById("modal-writer").innerText = `작성자: ${displayWriter}`;
       
+      // 🔒 사진 유무를 칼같이 체크하여 노출 상태 통제 (결함 원천 차단)
       const modalImg = document.getElementById("modal-img");
-      if (currentSelectedMemo.imageUrl) {
+      if (currentSelectedMemo.imageUrl && currentSelectedMemo.imageUrl.trim() !== "") {
         modalImg.src = currentSelectedMemo.imageUrl;
         modalImg.classList.remove("hidden");
       } else {
-        modalImg.classList.add("hidden");
+        modalImg.src = "";
+        modalImg.classList.add("hidden"); // 주소가 비어있으면 레이아웃에서 완전 제외
       }
       
       const actionButtons = document.getElementById("modal-action-buttons");
@@ -895,34 +762,6 @@
       document.getElementById("edit-memo-private").checked = currentSelectedMemo.isPrivate; 
 
       openModal("edit-modal");
-    }
-
-    function closeModal(modalId) {
-      const targetModal = document.getElementById(modalId);
-      targetModal.classList.remove("active");
-      setTimeout(() => {
-        targetModal.style.display = "none"; 
-      }, 200);
-    }
-
-    async function deleteMemo() {
-      if(!currentSelectedMemo) return;
-      if(!confirm("이 메모를 정말 삭제하시겠습니까?")) return;
-
-      const currentWriter = sessionStorage.getItem("loginUserId");
-      const isAdmin = sessionStorage.getItem("isAdmin") === "true";
-
-      try {
-        const result = await callBackend("deleteMemo", { id: currentSelectedMemo.id, writer: currentWriter, isAdmin: isAdmin });
-        alert(result.message);
-        if(result.success) {
-          closeModal("detail-modal");
-          loadMemos();
-        }
-      } catch(e) {
-        console.error(e);
-        alert("삭제 중 오류가 발생했습니다.");
-      }
     }
 
     function escapeHtml(text) {
