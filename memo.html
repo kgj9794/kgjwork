@@ -26,7 +26,6 @@
     .input-group input, .input-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; }
     .input-group textarea { resize: vertical; height: 120px; }
 
-    /* 버튼 스타일 통일 및 내부 로딩 요소 중앙 배치를 위한 플렉스 상자 적용 */
     button { width: 100%; padding: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
     button:hover { background-color: var(--primary-hover); }
     button:disabled { background-color: #a5b4fc; cursor: not-allowed; }
@@ -57,11 +56,11 @@
     .memo-preview { font-size: 13px; color: #6b7280; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; line-height: 1.4; }
     .memo-date { font-size: 11px; color: #9ca3af; text-align: right; }
 
-    /* 로딩 애니메이션 스피너 (목록용 큰 스피너) */
+    /* 로딩 애니메이션 스피너 */
     .loader-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; gap: 12px; }
     .spinner { width: 40px; height: 40px; border: 4px solid rgba(79, 70, 229, 0.1); border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
     
-    /* 버튼 내부 삽입용 미니 스피너 */
+    /* 버튼 내부용 미니 스피너 */
     .btn-spinner { width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
     
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -82,14 +81,14 @@
     .edit-btn { background-color: #f59e0b; } .edit-btn:hover { background-color: #d97706; }
     .del-btn { background-color: #ef4444; } .del-btn:hover { background-color: #dc2626; }
 
-    /* 화면 우측 하단 고정 버전 표시 마크 */
+    /* 버전 유무 마크 배너 */
     .version-badge { position: fixed; bottom: 12px; right: 12px; background-color: #1f2937; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; opacity: 0.6; z-index: 2000; pointer-events: none; }
   </style>
 </head>
 <body>
 
-  <!-- 최신 화면 반영 유무 검증 배너 -->
-  <div class="version-badge">v1.2.0</div>
+  <!-- 최신 코드 갱신 유무 검증 뱃지 -->
+  <div class="version-badge">v1.3.0</div>
 
   <div class="container">
     <!-- 1. 로그인 섹션 -->
@@ -185,7 +184,7 @@
   </div>
 
   <script>
-    // ⚠️ [필수] 새로 배포해서 발급받은 본인의 구글 웹 앱 URL 주소를 아래에 세팅해 주세요.
+    // ⚠️ 본인의 주소를 아래에 매핑해 주세요.
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzCVjxV5UzLVMsmPoqLMMu_Xz0Z1CDZ4FDWWGms0MP5ySJKBgAh2iBGY53kEmmUctjx/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
@@ -215,7 +214,6 @@
       }
     }
 
-    // [CORS 타파] GET 쿼리스트링 파라미터 텍스트 결합 우회 통신 로직
     async function callBackend(action, payload) {
       const dataStr = JSON.stringify({ action, payload });
       const targetUrl = `${GAS_URL}?data=${encodeURIComponent(dataStr)}`;
@@ -225,7 +223,6 @@
       return JSON.parse(textData); 
     }
 
-    // 회원가입 (+ 미니 스피너 연동)
     async function handleSignup() {
       const id = document.getElementById("signup-id").value;
       const password = document.getElementById("signup-pw").value;
@@ -256,7 +253,6 @@
       }
     }
 
-    // 로그인 (+ 미니 스피너 연동)
     async function handleLogin() {
       const id = document.getElementById("login-id").value;
       const password = document.getElementById("login-pw").value;
@@ -371,6 +367,7 @@
       }
     }
 
+    // [개선] 날짜 파싱 예외 처리를 추가하여 튕김 현상 원천 봉쇄
     async function loadMemos() {
       const listContainer = document.getElementById("memo-list");
       listContainer.innerHTML = `
@@ -398,6 +395,12 @@
             
             let imgHTML = memo.imageUrl ? `<img src="${memo.imageUrl}" class="memo-thumb">` : `<div class="memo-thumb" style="height:40px; background:#e0e7ff;"></div>`;
             
+            // 날짜 예외 안전 처리 (.split 가능 유무 체크)
+            let dateText = "날짜 정보 없음";
+            if (memo.createdAt) {
+              dateText = memo.createdAt.includes(" ") ? memo.createdAt.split(" ")[0] : memo.createdAt;
+            }
+
             card.innerHTML = `
               ${imgHTML}
               <div class="memo-info">
@@ -405,7 +408,7 @@
                   <div class="memo-title">${escapeHtml(memo.title)}</div>
                   <div class="memo-preview">${escapeHtml(memo.content)}</div>
                 </div>
-                <div class="memo-date">${String(memo.createdAt).split(" ")[0]}</div>
+                <div class="memo-date">${dateText}</div>
               </div>
             `;
             listContainer.appendChild(card);
