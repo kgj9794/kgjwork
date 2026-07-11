@@ -147,7 +147,7 @@
         <button id="save-btn" onclick="handleSaveMemo()">메모 저장하기</button>
       </div>
 
-      <!-- 메모 목록 (바둑판) -->
+      <!-- 메모 목록 -->
       <div id="memo-list" class="memo-grid"></div>
     </div>
   </div>
@@ -174,6 +174,7 @@
   </div>
 
   <script>
+    // ⚠️ 본인의 구글 웹 앱 URL과 ImgBB API Key를 입력하세요.
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxb7z7VSfhqvkNocfPCG88W2NABz2gI53Uh1V6gp3USCwcSnRtac_AlQRzRhMAe4USsBw/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
@@ -203,7 +204,19 @@
       }
     }
 
-    // 회원가입 fetch 구조 전면 수정 (CORS 및 리다이렉션 대응)
+    // 구글 Apps Script 리다이렉트 자동 추적 공통 함수
+    async function callBackend(action, payload) {
+      const response = await fetch(GAS_URL, {
+        method: "POST",
+        mode: "cors",
+        redirect: "follow", 
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action, payload })
+      });
+      return await response.json();
+    }
+
+    // 회원가입
     async function handleSignup() {
       const id = document.getElementById("signup-id").value;
       const password = document.getElementById("signup-pw").value;
@@ -213,13 +226,7 @@
       if (password !== passwordConfirm) return alert("비밀번호 재확인이 일치하지 않습니다.");
 
       try {
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          mode: "cors", // CORS 모드 명시
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "signup", payload: { id, password } })
-        });
-        const result = await res.json();
+        const result = await callBackend("signup", { id, password });
         alert(result.message);
         if (result.success) {
           document.getElementById("signup-id").value = "";
@@ -229,10 +236,11 @@
         }
       } catch (err) {
         console.error(err);
-        alert("회원가입 중 네트워크 오류가 발생했습니다. Apps Script 배포 버전을 확인해보세요.");
+        alert("회원가입 처리 중 오류가 발생했습니다.");
       }
     }
 
+    // 로그인
     async function handleLogin() {
       const id = document.getElementById("login-id").value;
       const password = document.getElementById("login-pw").value;
@@ -240,14 +248,7 @@
       if (!id || !password) return alert("아이디와 비밀번호를 입력해주세요.");
 
       try {
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "login", payload: { id, password } })
-        });
-        const result = await res.json();
-
+        const result = await callBackend("login", { id, password });
         if (result.success) {
           sessionStorage.setItem("isLoggedIn", "true");
           sessionStorage.setItem("loginUserId", result.userId);
@@ -296,6 +297,7 @@
       }
     }
 
+    // 메모 저장 및 수정
     async function handleSaveMemo() {
       const title = document.getElementById("memo-title").value;
       const content = document.getElementById("memo-content").value;
@@ -332,14 +334,7 @@
         : { title, content, imageUrl };
 
       try {
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: actionType, payload: payloadData })
-        });
-        const result = await res.json();
-
+        const result = await callBackend(actionType, payloadData);
         if (result.success) {
           document.getElementById("memo-form-card").classList.add("hidden");
           loadMemos();
@@ -354,6 +349,7 @@
       }
     }
 
+    // 메모 로드 및 스피너 연동
     async function loadMemos() {
       const listContainer = document.getElementById("memo-list");
       listContainer.innerHTML = `
@@ -364,14 +360,7 @@
       `;
 
       try {
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "getMemos" })
-        });
-        const result = await res.json();
-
+        const result = await callBackend("getMemos", {});
         if (result.success) {
           listContainer.innerHTML = "";
           cachedMemos = result.memos;
@@ -444,18 +433,13 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // 메모 삭제
     async function deleteMemo() {
       if(!currentSelectedMemo) return;
       if(!confirm("이 메모를 정말 삭제하시겠습니까?")) return;
 
       try {
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "deleteMemo", payload: { id: currentSelectedMemo.id } })
-        });
-        const result = await res.json();
+        const result = await callBackend("deleteMemo", { id: currentSelectedMemo.id });
         alert(result.message);
         if(result.success) {
           closeModal();
