@@ -15,7 +15,7 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; min-height: 100vh; padding: 20px; }
+    body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; min-height: 100vh; padding: 20px; position: relative; }
 
     .container { width: 100%; max-width: 600px; }
     .card { background: var(--card-bg); padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
@@ -26,8 +26,10 @@
     .input-group input, .input-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; }
     .input-group textarea { resize: vertical; height: 120px; }
 
-    button { width: 100%; padding: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    /* 버튼 기본 스타일 및 내부 중앙 정렬 */
+    button { width: 100%; padding: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
     button:hover { background-color: var(--primary-hover); }
+    button:disabled { background-color: #a5b4fc; cursor: not-allowed; }
 
     .sub-btn { background-color: transparent; color: #6b7280; margin-top: 10px; border: 1px solid var(--border-color); }
     .sub-btn:hover { background-color: #f3f4f6; color: var(--text-color); }
@@ -55,9 +57,13 @@
     .memo-preview { font-size: 13px; color: #6b7280; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; line-height: 1.4; }
     .memo-date { font-size: 11px; color: #9ca3af; text-align: right; }
 
-    /* 로딩 애니메이션 스피너 */
+    /* 대형 로딩 애니메이션 스피너 (목록 조회용) */
     .loader-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; gap: 12px; }
     .spinner { width: 40px; height: 40px; border: 4px solid rgba(79, 70, 229, 0.1); border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
+    
+    /* 버튼 내부용 미니 스피너 */
+    .btn-spinner { width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
+    
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     /* Modal Styling */
@@ -75,9 +81,15 @@
     .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
     .edit-btn { background-color: #f59e0b; } .edit-btn:hover { background-color: #d97706; }
     .del-btn { background-color: #ef4444; } .del-btn:hover { background-color: #dc2626; }
+
+    /* 버전을 나타내는 고정 뱃지 */
+    .version-badge { position: fixed; bottom: 12px; right: 12px; background-color: #1f2937; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; opacity: 0.6; z-index: 2000; pointer-events: none; }
   </style>
 </head>
 <body>
+
+  <!-- 웹앱 버전 마크 (업데이트 유무 확인용) -->
+  <div class="version-badge">v1.1.0</div>
 
   <div class="container">
     <!-- 1. 로그인 섹션 -->
@@ -91,7 +103,7 @@
         <label>비밀번호</label>
         <input type="password" id="login-pw" placeholder="비밀번호 입력" onkeydown="checkEnter(event, handleLogin)">
       </div>
-      <button onclick="handleLogin()">입장하기</button>
+      <button id="login-btn" onclick="handleLogin()">입장하기</button>
       <button class="sub-btn" onclick="toggleAuthMode(true)">계정 만들기 (회원가입)</button>
     </div>
 
@@ -110,7 +122,7 @@
         <label>비밀번호 재확인</label>
         <input type="password" id="signup-pw-confirm" placeholder="비밀번호 다시 한번 입력" onkeydown="checkEnter(event, handleSignup)">
       </div>
-      <button onclick="handleSignup()">가입 완료하기</button>
+      <button id="signup-btn" onclick="handleSignup()">가입 완료하기</button>
       <button class="sub-btn" onclick="toggleAuthMode(false)">로그인 화면으로 돌아가기</button>
     </div>
 
@@ -146,7 +158,7 @@
         <button id="save-btn" onclick="handleSaveMemo()">메모 저장하기</button>
       </div>
 
-      <!-- 메모 목록 (바둑판 배열) -->
+      <!-- 메모 목록 -->
       <div id="memo-list" class="memo-grid"></div>
     </div>
   </div>
@@ -173,8 +185,8 @@
   </div>
 
   <script>
-    // ⚠️ [완전 초중요] 새로 배포해서 발급된 구글 웹 앱 URL 주소를 꼭 여기에 넣어주세요!
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzeU8rozZLcya4eKWYQXVlc1lABiQS1elpyNEq7KZC1EZTIxd7MZGUfYM7RIvtahi_Eiw/exec";
+    // ⚠️ 본인의 새로운 구글 웹 앱 URL 주소를 아래에 매핑해 주세요.
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxb7z7VSfhqvkNocfPCG88W2NABz2gI53Uh1V6gp3USCwcSnRtac_AlQRzRhMAe4USsBw/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
     let cachedMemos = [];
@@ -203,10 +215,9 @@
       }
     }
 
-    // 🔒 [보안 해결 핵심] 구글 전용 GET 쿼리 연동 통신 방식 적용 (CORS 전면 우회)
+    // 공통 백엔드 연동기
     async function callBackend(action, payload) {
       const dataStr = JSON.stringify({ action, payload });
-      // 구글 보안망을 뚫기 위해 GET 데이터 파라미터로 우회 전송
       const targetUrl = `${GAS_URL}?data=${encodeURIComponent(dataStr)}`;
       
       const response = await fetch(targetUrl, { method: "GET" });
@@ -214,14 +225,19 @@
       return JSON.parse(textData); 
     }
 
-    // 회원가입
+    // 회원가입 (버튼 로딩 애니메이션 추가)
     async function handleSignup() {
       const id = document.getElementById("signup-id").value;
       const password = document.getElementById("signup-pw").value;
       const passwordConfirm = document.getElementById("signup-pw-confirm").value;
+      const signupBtn = document.getElementById("signup-btn");
 
       if (!id || !password || !passwordConfirm) return alert("모든 빈칸을 채워주세요.");
       if (password !== passwordConfirm) return alert("비밀번호 재확인이 일치하지 않습니다.");
+
+      // 로딩 상태 시작
+      signupBtn.disabled = true;
+      signupBtn.innerHTML = `<span class="btn-spinner"></span> 생성 중...`;
 
       try {
         const result = await callBackend("signup", { id, password });
@@ -235,15 +251,24 @@
       } catch (err) {
         console.error(err);
         alert("회원가입 중 에러가 발생했습니다.");
+      } finally {
+        // 로딩 상태 해제
+        signupBtn.disabled = false;
+        signupBtn.innerHTML = "가입 완료하기";
       }
     }
 
-    // 로그인
+    // 로그인 (버튼 로딩 애니메이션 추가)
     async function handleLogin() {
       const id = document.getElementById("login-id").value;
       const password = document.getElementById("login-pw").value;
+      const loginBtn = document.getElementById("login-btn");
 
       if (!id || !password) return alert("아이디와 비밀번호를 입력해주세요.");
+
+      // 로딩 상태 시작
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = `<span class="btn-spinner"></span> 접속 중...`;
 
       try {
         const result = await callBackend("login", { id, password });
@@ -257,6 +282,10 @@
       } catch (err) {
         console.error(err);
         alert("로그인 중 에러가 발생했습니다.");
+      } finally {
+        // 로딩 상태 해제
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = "입장하기";
       }
     }
 
@@ -295,7 +324,6 @@
       }
     }
 
-    // 메모 저장/수정
     async function handleSaveMemo() {
       const title = document.getElementById("memo-title").value;
       const content = document.getElementById("memo-content").value;
@@ -305,7 +333,7 @@
 
       if (!title || !content) return alert("제목과 내용을 입력해주세요.");
 
-      saveBtn.innerText = "저장 중...";
+      saveBtn.innerHTML = `<span class="btn-spinner"></span> 저장 중...`;
       saveBtn.disabled = true;
 
       let imageUrl = editId ? undefined : "";
@@ -321,7 +349,7 @@
           const imgData = await imgRes.json();
           if (imgData.success) imageUrl = imgData.data.url;
         } catch (e) {
-          console.error("이미지 가공 에러:", e);
+          console.error("이미지 업로드 오류:", e);
         }
       }
 
@@ -347,7 +375,6 @@
       }
     }
 
-    // 메모 목록 조회
     async function loadMemos() {
       const listContainer = document.getElementById("memo-list");
       listContainer.innerHTML = `
@@ -432,7 +459,6 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // 메모 삭제
     async function deleteMemo() {
       if(!currentSelectedMemo) return;
       if(!confirm("이 메모를 정말 삭제하시겠습니까?")) return;
