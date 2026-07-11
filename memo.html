@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>나만의 메모장</title>
   <style>
     :root {
@@ -15,77 +15,91 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; min-height: 100vh; padding: 20px; position: relative; }
+    body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; min-height: 100vh; padding: 12px; position: relative; }
 
-    .container { width: 100%; max-width: 600px; }
-    .card { background: var(--card-bg); padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    h2 { margin-bottom: 16px; color: var(--primary-color); }
+    /* 반응형 레이아웃 기본 컨테이너 */
+    .container { width: 100%; max-width: 650px; margin: 0 auto; }
+    .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 16px; }
+    h2 { margin-bottom: 16px; color: var(--primary-color); font-size: 20px; }
     
     .input-group { margin-bottom: 12px; }
-    .input-group label { display: block; font-size: 14px; margin-bottom: 4px; font-weight: 600; }
-    .input-group input, .input-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; }
-    .input-group textarea { resize: vertical; height: 120px; }
+    .input-group label { display: block; font-size: 13px; margin-bottom: 4px; font-weight: 600; color: #4b5563; }
+    .input-group input, .input-group textarea { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background-color: #f9fafb; transition: border 0.2s; }
+    .input-group input:focus, .input-group textarea:focus { outline: none; border-color: var(--primary-color); background-color: #fff; }
+    .input-group textarea { resize: vertical; height: 140px; }
 
-    button { width: 100%; padding: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    /* 버튼 모바일 터치 최적화 */
+    button { width: 100%; padding: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; }
     button:hover { background-color: var(--primary-hover); }
     button:disabled { background-color: #a5b4fc; cursor: not-allowed; }
 
-    .sub-btn { background-color: transparent; color: #6b7280; margin-top: 10px; border: 1px solid var(--border-color); }
+    .sub-btn { background-color: transparent; color: #6b7280; margin-top: 12px; border: 1px solid var(--border-color); padding: 12px; font-size: 14px; }
     .sub-btn:hover { background-color: #f3f4f6; color: var(--text-color); }
 
-    /* Memo Section Header */
-    .hidden { display: none !important; }
-    .header-bar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    /* 상단 헤더 반응형 배치 */
+    .header-bar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; padding: 4px; }
     .header-top { display: flex; justify-content: space-between; align-items: center; }
-    .user-greeting { font-size: 14px; color: #4b5563; font-weight: 600; text-align: right; }
-    .header-actions { display: flex; gap: 8px; margin-top: 4px; justify-content: flex-end; }
-    
-    .logout-btn { width: auto; padding: 8px 14px; background-color: #ef4444; font-size: 13px; }
-    .logout-btn:hover { background-color: #dc2626; }
-    .write-btn { width: auto; padding: 8px 14px; background-color: #10b981; font-size: 13px; }
-    .write-btn:hover { background-color: #059669; }
+    .user-greeting { font-size: 13px; color: #6b7280; font-weight: 600; text-align: right; }
+    .header-actions { display: flex; gap: 8px; width: 100%; }
+    .header-actions button { flex: 1; padding: 10px 0; font-size: 13px; }
+    .logout-btn { background-color: #ef4444; } .logout-btn:hover { background-color: #dc2626; }
+    .write-btn { background-color: #10b981; } .write-btn:hover { background-color: #059669; }
 
-    /* Memo Grid */
-    .memo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    /* 반응형 그리드 뷰 (기본 모바일 1열, PC/태블릿 2열 자동 연동) */
+    .memo-grid { display: grid; grid-template-columns: 1fr; gap: 12px; width: 100%; }
+    @media (min-width: 480px) {
+      .memo-grid { grid-template-columns: repeat(2, 1fr); }
+      .header-bar { flex-direction: row; justify-content: space-between; align-items: center; }
+      .header-actions { width: auto; }
+      .header-actions button { flex: none; padding: 8px 14px; }
+    }
+    
     .memo-card { background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border-color); overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; }
     .memo-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     
     .memo-thumb { width: 100%; height: 140px; object-fit: cover; background: #e5e7eb; }
-    .memo-info { padding: 14px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-    .memo-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .memo-preview { font-size: 13px; color: #6b7280; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; line-height: 1.4; }
+    .memo-info { padding: 14px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; }
+    .memo-title { font-size: 15px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .memo-preview { font-size: 13px; color: #6b7280; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
     
-    .memo-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #9ca3af; }
-    .memo-writer { font-weight: 600; color: #6b7280; }
+    .memo-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #9ca3af; border-top: 1px dashed #f3f4f6; padding-top: 8px; }
+    .memo-writer { font-weight: 600; color: #6b7280; max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    /* Loader */
+    /* 로딩 애니메이션 */
     .loader-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; gap: 12px; }
-    .spinner { width: 40px; height: 40px; border: 4px solid rgba(79, 70, 229, 0.1); border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
-    .btn-spinner { width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
+    .spinner { width: 36px; height: 36px; border: 4px solid rgba(79, 70, 229, 0.1); border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
+    .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, 0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* Modal */
-    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-    .modal-content { background: #fff; width: 100%; max-width: 500px; border-radius: 12px; position: relative; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+    /* 모달 기본 투명도 제거 및 정렬 */
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
     
-    .modal-header { padding: 20px 24px 10px 24px; position: relative; padding-right: 50px; }
-    .modal-close { position: absolute; top: 16px; right: 20px; font-size: 28px; border: none; background: none; cursor: pointer; color: #9ca3af; line-height: 1; z-index: 1010; }
+    /* 🎬 [핵심 변경] 확대되며 열리는 애니메이션 세팅 (Zoom-In) */
+    .modal-content { background: #fff; width: 100%; max-width: 480px; border-radius: 16px; position: relative; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); transform: scale(0.85); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    
+    /* 모달 활성화 시 상태 클래스 */
+    .modal.active { opacity: 1; pointer-events: auto; }
+    .modal.active .modal-content { transform: scale(1); }
+    
+    .modal-header { padding: 18px 20px 10px 20px; position: relative; padding-right: 44px; border-bottom: 1px solid #f3f4f6; }
+    .modal-close { position: absolute; top: 14px; right: 16px; font-size: 26px; border: none; background: none; cursor: pointer; color: #9ca3af; line-height: 1; z-index: 1010; padding: 4px; }
     .modal-close:hover { color: #1f2937; }
 
-    .modal-scroll-area { padding: 0 24px 24px 24px; overflow-y: auto; flex-grow: 1; }
-    .modal-img { width: 100%; max-height: 260px; object-fit: contain; border-radius: 6px; margin: 12px 0; background: #fafafa; }
-    .modal-body { font-size: 15px; color: #374151; white-space: pre-wrap; line-height: 1.6; margin-bottom: 20px; word-break: break-all; }
+    .modal-scroll-area { padding: 16px 20px 20px 20px; overflow-y: auto; flex-grow: 1; }
+    .modal-img { width: 100%; max-height: 240px; object-fit: contain; border-radius: 8px; margin-bottom: 12px; background: #fafafa; border: 1px solid #f3f4f6; }
+    .modal-body { font-size: 14px; color: #374151; white-space: pre-wrap; line-height: 1.5; margin-bottom: 16px; word-break: break-all; }
     
-    .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid #f3f4f6; padding-top: 12px; }
+    .modal-actions button { padding: 10px; font-size: 14px; }
     .edit-btn { background-color: #f59e0b; } .edit-btn:hover { background-color: #d97706; }
     .del-btn { background-color: #ef4444; } .del-btn:hover { background-color: #dc2626; }
 
-    .version-badge { position: fixed; bottom: 12px; right: 12px; background-color: #1f2937; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; opacity: 0.6; z-index: 2000; pointer-events: none; }
+    .version-badge { position: fixed; bottom: 8px; right: 8px; background-color: #1f2937; color: #ffffff; padding: 3px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; opacity: 0.5; z-index: 2000; pointer-events: none; }
   </style>
 </head>
 <body>
 
-  <div class="version-badge">v1.5.0</div>
+  <div class="version-badge">v1.6.0</div>
 
   <div class="container">
     <!-- 1. 로그인 섹션 -->
@@ -130,14 +144,24 @@
           <div id="user-display" class="user-greeting"></div>
         </div>
         <div class="header-actions">
-          <button class="write-btn" id="toggle-write-btn" onclick="toggleMemoForm()">+ 작성하기</button>
+          <button class="write-btn" onclick="openModal('write-modal')">+ 작성하기</button>
           <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
         </div>
       </div>
 
-      <!-- 메모 작성 폼 -->
-      <div id="memo-form-card" class="card hidden">
-        <h3 style="margin-bottom:12px; color:var(--primary-color);">새 메모 작성</h3>
+      <!-- 메모 목록 그리드 패널 -->
+      <div id="memo-list" class="memo-grid"></div>
+    </div>
+  </div>
+
+  <!-- 4. [신규 추가] 새 메모 작성 전용 팝업 창 모달 -->
+  <div id="write-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="modal-close" onclick="closeModal('write-modal')">×</button>
+        <h2 style="font-size: 18px; color: #10b981;">새 메모 작성</h2>
+      </div>
+      <div class="modal-scroll-area">
         <div class="input-group">
           <label>제목</label>
           <input type="text" id="memo-title" placeholder="제목을 입력하세요">
@@ -150,20 +174,17 @@
           <label>사진 첨부</label>
           <input type="file" id="memo-image" accept="image/*">
         </div>
-        <button id="save-btn" onclick="handleSaveMemo()">메모 저장하기</button>
+        <button id="save-btn" style="background-color: #10b981;" onclick="handleSaveMemo()">메모 저장하기</button>
       </div>
-
-      <!-- 메모 목록 -->
-      <div id="memo-list" class="memo-grid"></div>
     </div>
   </div>
 
-  <!-- 4. 상세 보기 팝업 모달 -->
-  <div id="detail-modal" class="modal hidden">
+  <!-- 5. 상세 보기 팝업 모달 -->
+  <div id="detail-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
         <button class="modal-close" onclick="closeModal('detail-modal')">×</button>
-        <h2 id="modal-title" style="word-break: break-all; font-size: 22px;">제목</h2>
+        <h2 id="modal-title" style="word-break: break-all; font-size: 20px;">제목</h2>
         <div id="modal-detail-meta" style="font-size:12px; color:#9ca3af; margin-top:4px;">
           <span id="modal-writer" style="font-weight:bold; color:#4b5563; margin-right:8px;">작성자</span>
           <span id="modal-date">날짜</span>
@@ -173,7 +194,6 @@
         <img id="modal-img" class="modal-img hidden" src="" alt="첨부 이미지">
         <div id="modal-body" class="modal-body">내용</div>
         
-        <!-- 권한 체크에 따라 본인 창에만 보일 기능 버튼 영역 -->
         <div id="modal-action-buttons" class="modal-actions">
           <button class="edit-btn" onclick="openEditModal()">수정</button>
           <button class="del-btn" onclick="deleteMemo()">삭제</button>
@@ -182,14 +202,14 @@
     </div>
   </div>
 
-  <!-- 5. 별도의 수정 전용 팝업 모달 -->
-  <div id="edit-modal" class="modal hidden">
+  <!-- 6. 별도의 수정 전용 팝업 모달 -->
+  <div id="edit-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
         <button class="modal-close" onclick="closeModal('edit-modal')">×</button>
-        <h2 style="font-size: 20px; color: #f59e0b;">메모 수정하기</h2>
+        <h2 style="font-size: 18px; color: #f59e0b;">메모 수정하기</h2>
       </div>
-      <div class="modal-scroll-area" style="padding-top: 10px;">
+      <div class="modal-scroll-area">
         <input type="hidden" id="edit-memo-id">
         <div class="input-group">
           <label>제목</label>
@@ -209,7 +229,6 @@
   </div>
 
   <script>
-    // ⚠️ 본인의 구글 웹 앱 URL 주소를 넣어주세요.
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyffQBU5zesglH2D20hgXCNHP19wsYrOeKYDNDo5brUhSqFCGmdIkrlVatl4SUkMQCG/exec";
     const IMGBB_API_KEY = "1e05b643dab984322bd28f66c40c0729";
 
@@ -320,24 +339,23 @@
       document.getElementById("memo-section").classList.remove("hidden");
       
       const userId = sessionStorage.getItem("loginUserId") || "사용자";
-      document.getElementById("user-display").innerText = `${userId}님 환영합니다!`;
+      document.getElementById("user-display").innerText = `${userId}님`;
       
       loadMemos();
     }
 
-    function toggleMemoForm() {
-      const formCard = document.getElementById("memo-form-card");
-      if(formCard.classList.contains("hidden")) {
-        document.getElementById("memo-title").value = "";
-        document.getElementById("memo-content").value = "";
-        document.getElementById("memo-image").value = "";
-        formCard.classList.remove("hidden");
-      } else {
-        formCard.classList.add("hidden");
-      }
+    // 🎬 트랜지션 애니메이션과 매핑을 위한 열기/닫기 공통 모달 조작 함수
+    function openModal(modalId) {
+      const targetModal = document.getElementById(modalId);
+      targetModal.classList.add("active");
+      targetModal.querySelector(".modal-scroll-area").scrollTop = 0;
     }
 
-    // 새 메모 저장 (현재 로그인한 유저 ID를 writer 파라미터에 실어서 전송)
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove("active");
+    }
+
+    // 새 메모 저장
     async function handleSaveMemo() {
       const title = document.getElementById("memo-title").value;
       const content = document.getElementById("memo-content").value;
@@ -370,7 +388,7 @@
       try {
         const result = await callBackend("addMemo", { title, content, imageUrl, writer: currentWriter });
         if (result.success) {
-          document.getElementById("memo-form-card").classList.add("hidden");
+          closeModal("write-modal");
           loadMemos();
         } else {
           alert(result.message);
@@ -383,7 +401,7 @@
       }
     }
 
-    // 메모 수정 요청 처리 (writer 정보 전송하여 백엔드 검증 유도)
+    // 메모 수정
     async function handleUpdateMemo() {
       const editId = document.getElementById("edit-memo-id").value;
       const title = document.getElementById("edit-memo-title").value;
@@ -430,13 +448,13 @@
       }
     }
 
-    // 메모 목록 로드 및 작성자 정보 바인딩
+    // 목록 연동
     async function loadMemos() {
       const listContainer = document.getElementById("memo-list");
       listContainer.innerHTML = `
         <div class="loader-container">
           <div class="spinner"></div>
-          <div style="font-size: 14px; color: #6b7280;">메모 데이터를 연동하는 중...</div>
+          <div style="font-size: 13px; color: #6b7280;">메모 데이터를 연동하는 중...</div>
         </div>
       `;
 
@@ -447,16 +465,16 @@
           cachedMemos = result.memos;
 
           if (cachedMemos.length === 0) {
-            listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align:center; color:#9ca3af; padding: 20px;'>등록된 메모가 없습니다.</p>";
+            listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align:center; color:#9ca3af; padding: 20px; font-size:14px;'>등록된 메모가 없습니다.</p>";
             return;
           }
 
           cachedMemos.forEach((memo, index) => {
             const card = document.createElement("div");
             card.className = "memo-card";
-            card.onclick = () => openModal(index);
+            card.onclick = () => openDetailModal(index);
             
-            let imgHTML = memo.imageUrl ? `<img src="${memo.imageUrl}" class="memo-thumb">` : `<div class="memo-thumb" style="height:40px; background:#e0e7ff;"></div>`;
+            let imgHTML = memo.imageUrl ? `<img src="${memo.imageUrl}" class="memo-thumb">` : `<div class="memo-thumb" style="height:30px; background:#e0e7ff;"></div>`;
             let dateText = "날짜 정보 없음";
             if (memo.createdAt) {
               dateText = memo.createdAt.includes(" ") ? memo.createdAt.split(" ")[0] : memo.createdAt;
@@ -485,8 +503,8 @@
       }
     }
 
-    // 상세 내용 열기 + 작성자 비교 권한 분기 적용
-    function openModal(index) {
+    // 상세 보기 창 전용 열기 매핑
+    function openDetailModal(index) {
       currentSelectedMemo = cachedMemos[index];
       const currentUser = sessionStorage.getItem("loginUserId");
       
@@ -505,7 +523,6 @@
         modalImg.classList.add("hidden");
       }
       
-      // 🔐 [권한 분기 핵심] 로그인 유저와 메모 작성자가 같을 때만 수정/삭제 버튼 노출
       const actionButtons = document.getElementById("modal-action-buttons");
       if (String(currentUser).trim() === String(currentSelectedMemo.writer).trim()) {
         actionButtons.classList.remove("hidden");
@@ -513,10 +530,10 @@
         actionButtons.classList.add("hidden");
       }
       
-      document.getElementById("detail-modal").classList.remove("hidden");
-      document.querySelector("#detail-modal .modal-scroll-area").scrollTop = 0;
+      openModal("detail-modal");
     }
 
+    // 수정 창 전용 열기 매핑
     function openEditModal() {
       if(!currentSelectedMemo) return;
       closeModal("detail-modal"); 
@@ -526,15 +543,10 @@
       document.getElementById("edit-memo-content").value = currentSelectedMemo.content;
       document.getElementById("edit-memo-image").value = ""; 
 
-      document.getElementById("edit-modal").classList.remove("hidden");
-      document.querySelector("#edit-modal .modal-scroll-area").scrollTop = 0;
+      openModal("edit-modal");
     }
 
-    function closeModal(modalId) {
-      document.getElementById(modalId).classList.add("hidden");
-    }
-
-    // 메모 삭제 요청 처리 (writer 정보 전송하여 백엔드 검증 유도)
+    // 메모 삭제
     async function deleteMemo() {
       if(!currentSelectedMemo) return;
       if(!confirm("이 메모를 정말 삭제하시겠습니까?")) return;
