@@ -103,7 +103,7 @@
     .view-panel.active-main { transform: translateY(0); opacity: 1; height: 100%; }
     .view-panel.fly-down { transform: translateY(100vh); opacity: 0; }
    
-    /* 🛠️ [핵심] 인풋 그룹 모바일 치우침 방지 중앙 고정 */
+    /* 🛠️ 인풋 그룹 모바일 치우침 방지 중앙 고정 */
     .input-group { width: 100%; max-width: 310px; margin-bottom: 16px; display: flex; flex-direction: column; align-items: flex-start; }
     .input-group label { font-size: 13px; margin-bottom: 5px; font-weight: 600; color: var(--text-muted); padding-left: 2px; }
     .input-group input, .input-group textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--input-border); border-radius: 12px; font-size: 14px; background: var(--input-bg); color: var(--text-color); transition: all 0.25s ease; }
@@ -153,6 +153,8 @@
     .memo-meta { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--text-muted); border-top: 1px solid var(--card-border); padding-top: 10px; }
     .memo-writer { font-weight: 800; color: var(--primary-color); }
 
+    .private-badge { display: inline-flex; align-items: center; background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 6px; margin-right: 4px; box-shadow: 0 2px 6px rgba(124, 58, 237, 0.2); flex-shrink: 0; }
+
     /* 플로팅 버튼 */
     .fab-btn { display: none; position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; border: none; font-size: 32px; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); cursor: pointer; transition: 0.2s; z-index: 900; }
     .fab-btn:active { transform: scale(0.9); }
@@ -179,11 +181,33 @@
 
     /* 버전 뱃지 좌측 하단 고정 */
     .version-badge { position: fixed; bottom: 10px; left: 10px; background: #1f2937; color: #fff; padding: 3px 7px; border-radius: 5px; font-size: 9px; font-weight: bold; opacity: 0.5; z-index: 2000; pointer-events: none; transition: 1.5s; }
+
+    /* 📊 [신규 생성] 메모 개수 표시용 하단 맨 왼쪽 디자인 고정 스타일 */
+    .count-badge { 
+      position: fixed; 
+      bottom: 32px; 
+      left: 10px; 
+      background: var(--card-glass); 
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--text-color); 
+      padding: 4px 9px; 
+      border-radius: 6px; 
+      font-size: 11px; 
+      font-weight: bold; 
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      z-index: 1999; 
+      pointer-events: none; 
+      display: none; /* 로그아웃 상태일 땐 보이지 않음 */
+    }
   </style>
 </head>
 <body>
 
   <div id="app-version" class="version-badge">v2.6.0</div>
+  <!-- 📊 신규: 하단 맨 왼쪽 카운팅 뱃지 추가 엘리먼트 -->
+  <div id="memo-count-badge" class="count-badge">메모 가져오는 중...</div>
 
   <div class="container">
     <div id="login-section" class="view-panel card">
@@ -311,6 +335,9 @@
         memoSec.classList.remove("hidden");
         memoSec.classList.add("active-main");
         document.getElementById("fab-write-btn").style.display = "flex";
+        
+        /* 🛠️수정: 새로고침 시 로그인 유지 상태라면 카운트 뱃지 출력 */
+        document.getElementById("memo-count-badge").style.display = "block";
         showMemoSection();
       }
     };
@@ -385,6 +412,9 @@
             setTimeout(() => {
               memoSec.classList.add("active-main");
               document.getElementById("fab-write-btn").style.display = "flex";
+              
+              /* 🛠️수정: 로그인 성공 진입 시 카운팅 뱃지 표시 활성화 */
+              document.getElementById("memo-count-badge").style.display = "block";
             }, 50);
             showMemoSection();
           }, 450);
@@ -397,6 +427,10 @@
       const loginSec = document.getElementById("login-section");
       const memoSec = document.getElementById("memo-section");
       document.getElementById("fab-write-btn").style.display = "none";
+      
+      /* 🛠️수정: 로그아웃 하면 카운트 뱃지 숨김 처리 */
+      document.getElementById("memo-count-badge").style.display = "none";
+
       memoSec.classList.remove("active-main");
       memoSec.classList.add("fly-down");
       setTimeout(() => {
@@ -482,11 +516,17 @@
       const result = await callBackend("getMemos", { userId: sessionStorage.getItem("loginUserId"), isAdmin: sessionStorage.getItem("isAdmin")==="true" });
       if (result.success) {
         listContainer.innerHTML = ""; cachedMemos = result.memos;
+        
+        /* 🛠️수정: 받아온 메모들의 전체 개수를 실시간으로 하단 뱃지에 갱신 */
+        document.getElementById("memo-count-badge").innerText = `📄 총 ${cachedMemos.length}개의 메모`;
+
         if (cachedMemos.length === 0) { listContainer.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:50px; color:var(--text-muted); font-size:13px;'>저장된 메모가 없습니다.</p>"; return; }
         cachedMemos.forEach((memo, idx) => {
           const card = document.createElement("div"); card.className = "memo-card"; card.onclick = () => openDetailModal(idx);
           let imgHTML = memo.imageUrl ? `<img src="${memo.imageUrl}" class="memo-thumb">` : `<div class="memo-thumb" style="height:35px; background:rgba(255,255,255,0.1);"></div>`;
-          let privateBadge = memo.isPrivate ? `<span class="private-badge">숨김</span> ` : "";
+          
+          let privateBadge = memo.isPrivate ? `<span class="private-badge">🔒 나만보기</span>` : "";
+          
           card.innerHTML = `${imgHTML}<div class="memo-info"><div><div class="memo-title">${privateBadge}${escapeHtml(memo.title)}</div><div class="memo-preview">${escapeHtml(memo.content)}</div></div><div class="memo-meta"><span class="memo-writer">${escapeHtml(memo.writer)}</span><span>${memo.createdAt.split(" ")[0]}</span></div></div>`;
           listContainer.appendChild(card);
         });
@@ -497,7 +537,9 @@
       currentSelectedMemo = cachedMemos[idx];
       const isOwner = String(sessionStorage.getItem("loginUserId")).trim() === String(currentSelectedMemo.writer).trim();
       const isAdmin = sessionStorage.getItem("isAdmin") === "true";
-      document.getElementById("modal-title").innerHTML = (currentSelectedMemo.isPrivate ? `<span class="private-badge" style="vertical-align:middle; margin-right:5px;">숨김</span>` : "") + escapeHtml(currentSelectedMemo.title);
+      
+      document.getElementById("modal-title").innerHTML = (currentSelectedMemo.isPrivate ? `<span class="private-badge" style="vertical-align:middle;">🔒 나만보기</span>` : "") + escapeHtml(currentSelectedMemo.title);
+      
       document.getElementById("modal-writer").innerText = currentSelectedMemo.writer;
       document.getElementById("modal-date").innerText = currentSelectedMemo.createdAt;
       document.getElementById("modal-body").innerText = currentSelectedMemo.content;
