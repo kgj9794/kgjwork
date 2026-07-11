@@ -55,11 +55,17 @@
     .memo-preview { font-size: 13px; color: #6b7280; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; line-height: 1.4; }
     .memo-date { font-size: 11px; color: #9ca3af; text-align: right; }
 
-    /* Modal Styling (닫기 버튼 상단 고정 적용) */
+    /* 로딩 애니메이션 스피너 */
+    .loader-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; gap: 12px; }
+    .spinner { width: 40px; height: 40px; border: 4px solid rgba(79, 70, 229, 0.1); border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .loader-text { font-size: 14px; color: #6b7280; }
+
+    /* Modal Styling */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
     .modal-content { background: #fff; width: 100%; max-width: 500px; border-radius: 12px; position: relative; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
     
-    .modal-header { padding: 20px 24px 10px 24px; position: relative; padding-right: 50px; } /* X 버튼 자리를 위해 패딩 추가 */
+    .modal-header { padding: 20px 24px 10px 24px; position: relative; padding-right: 50px; }
     .modal-close { position: absolute; top: 16px; right: 20px; font-size: 28px; border: none; background: none; cursor: pointer; color: #9ca3af; line-height: 1; z-index: 1010; }
     .modal-close:hover { color: #1f2937; }
 
@@ -141,22 +147,20 @@
         <button id="save-btn" onclick="handleSaveMemo()">메모 저장하기</button>
       </div>
 
-      <!-- 메모 목록 -->
+      <!-- 메모 목록 (바둑판) -->
       <div id="memo-list" class="memo-grid"></div>
     </div>
   </div>
 
-  <!-- 4. 상세 보기 팝업 모달 (X 버튼 상단 고정 구조 변경) -->
+  <!-- 4. 상세 보기 팝업 모달 -->
   <div id="detail-modal" class="modal hidden">
     <div class="modal-content">
-      <!-- 헤더 영역 (고정) -->
       <div class="modal-header">
         <button class="modal-close" onclick="closeModal()">×</button>
         <h2 id="modal-title" style="word-break: break-all; font-size: 22px;">제목</h2>
         <div id="modal-date" style="font-size:12px; color:#9ca3af; margin-top:4px;">날짜</div>
       </div>
       
-      <!-- 스크롤 바디 영역 -->
       <div class="modal-scroll-area">
         <img id="modal-img" class="modal-img hidden" src="" alt="첨부 이미지">
         <div id="modal-body" class="modal-body">내용</div>
@@ -182,7 +186,6 @@
       }
     };
 
-    // 엔터키 입력 감지 함수
     function checkEnter(event, callback) {
       if (event.key === "Enter") {
         event.preventDefault();
@@ -200,6 +203,7 @@
       }
     }
 
+    // 회원가입 전송 방식 보완
     async function handleSignup() {
       const id = document.getElementById("signup-id").value;
       const password = document.getElementById("signup-pw").value;
@@ -211,6 +215,7 @@
       try {
         const res = await fetch(GAS_URL, {
           method: "POST",
+          headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({ action: "signup", payload: { id, password } })
         });
         const result = await res.json();
@@ -222,10 +227,11 @@
           toggleAuthMode(false);
         }
       } catch (err) {
-        alert("회원가입 중 오류 발생");
+        alert("회원가입 중 오류가 발생했습니다.");
       }
     }
 
+    // 로그인 시 반환된 실제 ID를 받아서 표출하도록 수정
     async function handleLogin() {
       const id = document.getElementById("login-id").value;
       const password = document.getElementById("login-pw").value;
@@ -235,19 +241,20 @@
       try {
         const res = await fetch(GAS_URL, {
           method: "POST",
+          headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({ action: "login", payload: { id, password } })
         });
         const result = await res.json();
 
         if (result.success) {
           sessionStorage.setItem("isLoggedIn", "true");
-          sessionStorage.setItem("loginUserId", id); // 로그인한 ID 저장
+          sessionStorage.setItem("loginUserId", result.userId); // 반환받은 정확한 ID 매핑
           showMemoSection();
         } else {
           alert(result.message);
         }
       } catch (err) {
-        alert("로그인 중 오류 발생");
+        alert("로그인 중 오류가 발생했습니다.");
       }
     }
 
@@ -264,7 +271,6 @@
       document.getElementById("signup-section").classList.add("hidden");
       document.getElementById("memo-section").classList.remove("hidden");
       
-      // 사용자 이름 표출 로직 추가
       const userId = sessionStorage.getItem("loginUserId") || "사용자";
       document.getElementById("user-display").innerText = `👤 ${userId}님 환영합니다!`;
       
@@ -325,6 +331,7 @@
       try {
         const res = await fetch(GAS_URL, {
           method: "POST",
+          headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({ action: actionType, payload: payloadData })
         });
         const result = await res.json();
@@ -343,13 +350,22 @@
       }
     }
 
+    // 애니메이션 스피너가 작동하도록 loadMemos 로직 수정
     async function loadMemos() {
       const listContainer = document.getElementById("memo-list");
-      listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>메모를 불러오는 중...</p>";
+      
+      // 로딩 애니메이션 HTML 삽입
+      listContainer.innerHTML = `
+        <div class="loader-container">
+          <div class="spinner"></div>
+          <div class="loader-text">구글 스프레드시트에서 메모를 가져오는 중...</div>
+        </div>
+      `;
 
       try {
         const res = await fetch(GAS_URL, {
           method: "POST",
+          headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({ action: "getMemos" })
         });
         const result = await res.json();
@@ -359,7 +375,7 @@
           cachedMemos = result.memos;
 
           if (cachedMemos.length === 0) {
-            listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align:center; color:#9ca3af;'>등록된 메모가 없습니다.</p>";
+            listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align:center; color:#9ca3af; padding: 20px;'>등록된 메모가 없습니다.</p>";
             return;
           }
 
@@ -384,7 +400,7 @@
           });
         }
       } catch (e) {
-        listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>메모를 불러오지 못했습니다.</p>";
+        listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align:center; padding: 20px;'>메모를 불러오지 못했습니다.</p>";
       }
     }
 
@@ -404,7 +420,7 @@
       }
       
       document.getElementById("detail-modal").classList.remove("hidden");
-      document.querySelector(".modal-scroll-area").scrollTop = 0; // 모달 열릴 때 스크롤 초기화
+      document.querySelector(".modal-scroll-area").scrollTop = 0;
     }
 
     function closeModal() {
@@ -433,6 +449,7 @@
       try {
         const res = await fetch(GAS_URL, {
           method: "POST",
+          headers: { "Content-Type": "text/plain" },
           body: JSON.stringify({ action: "deleteMemo", payload: { id: currentSelectedMemo.id } })
         });
         const result = await res.json();
