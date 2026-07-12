@@ -533,21 +533,30 @@
       }
     }
 
-    function openDetailModal(idx) {
-      currentSelectedMemo = cachedMemos[idx];
-      const isOwner = String(sessionStorage.getItem("loginUserId")).trim() === String(currentSelectedMemo.writer).trim();
-      const isAdmin = sessionStorage.getItem("isAdmin") === "true";
-      
-      document.getElementById("modal-title").innerHTML = (currentSelectedMemo.isPrivate ? `<span class="private-badge" style="vertical-align:middle;">🔒 나만보기</span>` : "") + escapeHtml(currentSelectedMemo.title);
-      
-      document.getElementById("modal-writer").innerText = currentSelectedMemo.writer;
-      document.getElementById("modal-date").innerText = currentSelectedMemo.createdAt;
-      document.getElementById("modal-body").innerText = currentSelectedMemo.content;
-      const img = document.getElementById("modal-img");
-      if(currentSelectedMemo.imageUrl) { img.src = currentSelectedMemo.imageUrl; img.classList.remove("hidden"); } else { img.classList.add("hidden"); }
-      document.getElementById("modal-action-buttons").style.display = (isOwner || isAdmin) ? "flex" : "none";
-      openModal("detail-modal");
-    }
+function openDetailModal(idx) {
+  currentSelectedMemo = cachedMemos[idx];
+  const isOwner = String(sessionStorage.getItem("loginUserId")).trim() === String(currentSelectedMemo.writer).trim();
+  const isAdmin = sessionStorage.getItem("isAdmin") === "true";
+  
+  document.getElementById("modal-title").innerHTML = (currentSelectedMemo.isPrivate ? `<span class="private-badge" style="vertical-align:middle;">🔒 나만보기</span>` : "") + escapeHtml(currentSelectedMemo.title);
+  
+  document.getElementById("modal-writer").innerText = currentSelectedMemo.writer;
+  document.getElementById("modal-date").innerText = currentSelectedMemo.createdAt;
+  document.getElementById("modal-body").innerText = currentSelectedMemo.content;
+  
+  const img = document.getElementById("modal-img");
+  // 사진 주소가 존재할 때만 src를 넣고 노출, 없을 때는 주소를 비우고 숨김 처리
+  if(currentSelectedMemo.imageUrl) { 
+    img.src = currentSelectedMemo.imageUrl; 
+    img.classList.remove("hidden"); 
+  } else { 
+    img.src = ""; // 👈 이 코드를 추가하여 이전 사진 링크를 완전히 지워줍니다.
+    img.classList.add("hidden"); 
+  }
+  
+  document.getElementById("modal-action-buttons").style.display = (isOwner || isAdmin) ? "flex" : "none";
+  openModal("detail-modal");
+}
 
     function openEditModal() {
       closeModal("detail-modal");
