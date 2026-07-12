@@ -280,24 +280,30 @@
   </div>
 
   <div id="detail-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 id="modal-title"></h2>
-        <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modal-title"></h2>
+      <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
+    </div>
+    <div class="modal-scroll-area">
+      <!-- 이미지를 내용보다 먼저 띄우거나, 내용 밑으로 가길 원하시면 body 밑으로 옮기셔도 됩니다 -->
+      <img id="modal-img" class="modal-img hidden" src="">
+      
+      <!-- 메모 내용 -->
+      <div id="modal-body" class="modal-body"></div>
+      
+      <!-- ✨ 작성자 및 날짜를 내용 아래로 이동 (여백 조절을 위해 margin-top 추가) -->
+      <div id="modal-meta" style="width:100%; font-size:11px; margin-top:20px; color:var(--text-muted);">
+        <span id="modal-writer" style="font-weight:bold; color:var(--primary-color);"></span> · <span id="modal-date"></span>
       </div>
-      <div class="modal-scroll-area">
-        <div id="modal-meta" style="width:100%; font-size:11px; margin-bottom:15px; color:var(--text-muted);">
-          <span id="modal-writer" style="font-weight:bold; color:var(--primary-color);"></span> · <span id="modal-date"></span>
-        </div>
-        <img id="modal-img" class="modal-img hidden" src="">
-        <div id="modal-body" class="modal-body"></div>
-        <div id="modal-action-buttons" class="modal-actions">
-          <button class="edit-btn" style="background:#f59e0b;" onclick="openEditModal()">수정</button>
-          <button class="del-btn" style="background:#ef4444;" onclick="deleteMemo()">삭제</button>
-        </div>
+      
+      <div id="modal-action-buttons" class="modal-actions">
+        <button class="edit-btn" style="background:#f59e0b;" onclick="openEditModal()">수정</button>
+        <button class="del-btn" style="background:#ef4444;" onclick="deleteMemo()">삭제</button>
       </div>
     </div>
   </div>
+</div>
 
   <div id="edit-modal" class="modal">
     <div class="modal-content">
